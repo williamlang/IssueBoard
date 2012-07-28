@@ -1,0 +1,153 @@
+<h2>JIRA Credentials</h2>
+<form method="post" action="/curl/get_issues">
+<table id="login">
+    <tr>
+	<td>Username</td>
+	<td><input type="text" id="username" name="username" /></td>
+    </tr>
+    <tr>
+	<td>Password</td>
+        <td><input type="password" id="password" name="password" /></td>
+    </tr>
+    <tr>
+	<td>Sprint</td>
+	<td><input type="text" id="sprint" name="sprint" /></td>
+    </tr>
+    <tr>
+	<td>&nbsp;</td>
+	<td style="text-align:right;"><input type="submit" value="Update" /></td>
+    </tr>
+</table>
+</form>
+
+<h2>Options</h2>
+<input id="flush" type="button" value="Flush Issues" />
+
+<table id="issueboard">	
+    <tr>
+	<th>Open</th>
+	<th>In Progress</th>
+	<th>Review</th>
+	<th>SQL Review</th>
+	<th>Merge</th>
+	<th>Test</th>
+	<th>System Test</th>
+	<th>Rework</th>
+	<th>Blocked</th>
+	<th>Done</th>
+    </tr>
+    <tr>
+	<td id="open" class="border_right issue_section"></td>
+	<td id="in_progress" class="border_right issue_section"></td>
+	<td id="review" class="border_right issue_section"></td>
+	<td id="sql_review" class="border_right issue_section"></td>
+	<td id="merge" class="border_right issue_section"></td>
+	<td id="test" class="border_right issue_section"></td>
+	<td id="system_test" class="border_right issue_section"></td>
+	<td id="rework" class="border_right issue_section"></td>
+	<td id="blocked" class="border_right issue_section"></td>
+	<td id="done" class="issue_section"></td>
+    </tr>
+</table>
+
+<div id="overlay_container" style="display:none;">
+    <div id="loading_overlay"></div>
+    <div id="loading">Loading...</div>
+</div>
+
+<script>
+var ticket_array = [];
+
+$(document).ready(function(){
+    $('#flush').click(function(){
+	$.get('flush_issues', function(data){
+	    if (data.json_message == "Issues flushed.") {
+		$('.issue_section').html('');
+	    }
+	});	
+    });
+
+    $('.issue_section').droppable({
+        drop: function( event, ui ) {
+	    $.post('update_issue', { id: ui.draggable.attr('id'), section: $(this).attr('id'), title: ui.draggable.find('p').html() }, function(data) {
+		if (data.json_data.errors) {
+		    alert(data.json_data.errors);
+		}
+	    });
+
+	    ui.draggable.remove();
+	    ui.draggable.removeAttr('style');
+	    $(this).append(ui.draggable);
+
+	    // Re-init draggable
+	    $('.ticket_block').draggable();
+	}
+    });
+
+    $.get('get_issues', function(data) {
+	if (data.json_data.errors) {
+	    alert(data.json_data.errors);
+	}
+	else {
+	    for (var i = 0; i < data.json_data.tickets.length; i++) {
+		var ticket_data = data.json_data.tickets[i];
+		ticket_array.push(new ticket(ticket_data.id, ticket_data.title));
+		$('#' + ticket_data.section).append(ticket_array[ticket_array.length - 1].toObj()); 
+	    }
+	}
+    });
+});
+
+function queryIssues() {
+    /*
+	Authentication
+    */
+    $('#overlay_container').show();
+
+    var username = $('#username').val();
+    var password = $('#password').val();
+    var sprint = $('#sprint').val();
+
+    $.ajax({
+	url: '/curl/get_issues',
+	data: "username=" + username + "&password=" + password + "&fixVersion=" + sprint,
+	success: function(data) {
+	    var issues = data.json_data.issues;
+
+	    for (var i = 0; i < issues.length; i++) {
+		var issue = issues[i];
+	
+		if (issue.fields.assignee.name != "procter") {
+
+		    var ticketFound = false;
+
+		    for (var j = 0; j < ticket_array.length; j++) {
+			if (ticket_array[j].getId() == issue.key) {
+			    ticketFound = true;
+			}
+		    }
+
+		    if (!ticketFound) {
+			ticket_array.push(new ticket(issue.key, issue.fields.summary));
+			$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array[ticket_array.length - 1].toObj());
+
+			$.post('update_issue', { id: issue.key, section: convertJIRAStatus(issue.fields.status.name), title: issue.fields.summary }, function(data) {
+			    if (data.json_data.errors) {
+				alert(data.json_data.errors);
+			    }
+			});
+		    }
+		}
+	    }
+
+	    $('#overlay_container').hide();	
+	},
+	contentType: 'application/json',
+	type: 'POST'
+    });
+}
+
+function convertJIRAStatus(jiraStatus) {
+    return jiraStatus.toLowerCase().replace(/\s/, "_");
+}
+</script>
