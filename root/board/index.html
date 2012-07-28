@@ -1,5 +1,4 @@
 <h2>JIRA Credentials</h2>
-<form method="post" action="/curl/get_issues">
 <table id="login">
     <tr>
 	<td>Username</td>
@@ -15,10 +14,9 @@
     </tr>
     <tr>
 	<td>&nbsp;</td>
-	<td style="text-align:right;"><input type="submit" value="Update" /></td>
+	<td style="text-align:right;"><input type="button" value="Update" id="update" /></td>
     </tr>
 </table>
-</form>
 
 <h2>Options</h2>
 <input id="flush" type="button" value="Flush Issues" />
@@ -59,6 +57,13 @@
 var ticket_array = [];
 
 $(document).ready(function(){
+
+    $('#update').click(function() {
+	queryIssues();
+
+	$('#password').val('');
+    });
+
     $('#flush').click(function(){
 	$.get('flush_issues', function(data){
 	    if (data.json_message == "Issues flushed.") {
@@ -108,10 +113,7 @@ function queryIssues() {
     var password = $('#password').val();
     var sprint = $('#sprint').val();
 
-    $.ajax({
-	url: '/curl/get_issues',
-	data: "username=" + username + "&password=" + password + "&fixVersion=" + sprint,
-	success: function(data) {
+    $.post('/curl/get_issues', { username: username, password: password, sprint: sprint }, function(data) {
 	    var issues = data.json_data.issues;
 
 	    for (var i = 0; i < issues.length; i++) {
@@ -140,11 +142,10 @@ function queryIssues() {
 		}
 	    }
 
-	    $('#overlay_container').hide();	
+	    $('#overlay_container').hide();
 	},
-	contentType: 'application/json',
-	type: 'POST'
-    });
+	'json'
+    );
 }
 
 function convertJIRAStatus(jiraStatus) {
