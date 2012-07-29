@@ -51,8 +51,9 @@ sub get_issues :Local {
 		push @tickets, {
 		    id => $lines[0],
 		    title => $lines[1],
-		    section => $lines[2]
-		} if $lines[0] && $lines[1] && $lines[2];
+		    section => $lines[2],
+		    assignee => $lines[3]
+		} if $lines[0] && $lines[1] && $lines[2] && $lines[3];
 	    }
 	}
 
@@ -74,6 +75,7 @@ sub update_issue :Local {
     my $ticket_id;
     my $section;
     my $title;
+    my $assignee;
 
     if ($c->req->body_params->{id}) {
         $ticket_id = $c->req->body_params->{id};
@@ -99,6 +101,14 @@ sub update_issue :Local {
 	push @messages, "No title specified.";
     }
 
+    if ($c->req->body_params->{assignee}) {
+	$assignee = $c->req->body_params->{assignee};
+    }
+    else {
+	$error = 1;
+	push @messages, "No assignee specified.";
+    }
+
     if ($error) {
         $c->stash->{json_data} = {
 	    'errors' => \@messages 
@@ -109,6 +119,7 @@ sub update_issue :Local {
 $ticket_id
 $title
 $section
+$assignee
 END_FILE
 
 	# open file for read -- we don't care what's in there, so truncate and overwrite

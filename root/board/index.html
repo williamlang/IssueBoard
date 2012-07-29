@@ -1,25 +1,39 @@
-<h2>JIRA Credentials</h2>
-<table id="login">
-    <tr>
-	<td>Username</td>
-	<td><input type="text" id="username" name="username" /></td>
-    </tr>
-    <tr>
-	<td>Password</td>
-        <td><input type="password" id="password" name="password" /></td>
-    </tr>
-    <tr>
-	<td>Sprint</td>
-	<td><input type="text" id="sprint" name="sprint" /></td>
-    </tr>
-    <tr>
-	<td>&nbsp;</td>
-	<td style="text-align:right;"><input type="button" value="Update" id="update" /></td>
-    </tr>
-</table>
+<div id="login">
+	<h2>JIRA Credentials</h2>
+	<table id="login">
+	    <tr>
+		<td>Username</td>
+		<td><input type="text" id="username" name="username" /></td>
+	    </tr>
+	    <tr>
+		<td>Password</td>
+		<td><input type="password" id="password" name="password" /></td>
+	    </tr>
+	    <tr>
+		<td>Sprint</td>
+		<td><input type="text" id="sprint" name="sprint" /></td>
+	    </tr>
+	    <tr>
+		<td>&nbsp;</td>
+		<td style="text-align:right;"><input type="button" value="Update" id="update" /></td>
+	    </tr>
+	</table>
 
-<h2>Options</h2>
-<input id="flush" type="button" value="Flush Issues" />
+	<h2>Options</h2>
+	<input id="flush" type="button" value="Flush Issues" />
+</div>
+
+<div id="legend">
+    <table>
+	<tr>
+	    <th>User</th>
+	    <th>Color</th>
+	</tr>
+	<tr id="users">
+
+	</tr>
+    </table>
+</div>
 
 <table id="issueboard">	
     <tr>
@@ -55,6 +69,18 @@
 
 <script>
 var ticket_array = [];
+var assignee_array = new observableArray();
+
+assignee_array.onNewItem = function(key){
+    $('#legend table').append('<tr class="legend_user"><td>' + key + '</td><td class="' + key + '">&nbsp;</td></tr>');
+};
+
+function assigneeColourize() {
+    for (key in assignee_array.data) {
+	if ($('.' + key))
+	    $('.' + key).css('background-color', stringToColor(key));
+    }
+}
 
 $(document).ready(function(){
 
@@ -68,13 +94,22 @@ $(document).ready(function(){
 	$.get('flush_issues', function(data){
 	    if (data.json_message == "Issues flushed.") {
 		$('.issue_section').html('');
+		ticket_array = [];
+		assignee_array.data = {};
 	    }
-	});	
+	});
+
+	$('#legend table tr.legend_user').remove();
     });
 
     $('.issue_section').droppable({
         drop: function( event, ui ) {
-	    $.post('update_issue', { id: ui.draggable.attr('id'), section: $(this).attr('id'), title: ui.draggable.find('p').html() }, function(data) {
+	    var ticket_id = ui.draggable.attr('id');
+	    var section = $(this).attr('id');
+	    var title = $('#' + ticket_id + '_title').html();
+	    var assignee = $('#' + ticket_id + '_assignee').html();
+
+	    $.post('update_issue', { id: ticket_id, section: section, title: title, assignee: assignee }, function(data) {
 		if (data.json_data.errors) {
 		    alert(data.json_data.errors);
 		}
@@ -96,9 +131,12 @@ $(document).ready(function(){
 	else {
 	    for (var i = 0; i < data.json_data.tickets.length; i++) {
 		var ticket_data = data.json_data.tickets[i];
-		ticket_array.push(new ticket(ticket_data.id, ticket_data.title));
+		ticket_array.push(new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee));
+		assignee_array.push(ticket_data.assignee, 1);
 		$('#' + ticket_data.section).append(ticket_array[ticket_array.length - 1].toObj()); 
 	    }
+
+	    assigneeColourize();
 	}
     });
 });
@@ -120,7 +158,6 @@ function queryIssues() {
 		var issue = issues[i];
 	
 		if (issue.fields.assignee.name != "procter") {
-
 		    var ticketFound = false;
 
 		    for (var j = 0; j < ticket_array.length; j++) {
@@ -130,10 +167,11 @@ function queryIssues() {
 		    }
 
 		    if (!ticketFound) {
-			ticket_array.push(new ticket(issue.key, issue.fields.summary));
+			ticket_array.push(new ticket(issue.key, issue.fields.summary, issue.fields.assignee.name));
 			$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array[ticket_array.length - 1].toObj());
+			assignee_array.push(issue.fields.assignee.name, 1);
 
-			$.post('update_issue', { id: issue.key, section: convertJIRAStatus(issue.fields.status.name), title: issue.fields.summary }, function(data) {
+			$.post('update_issue', { id: issue.key, section: convertJIRAStatus(issue.fields.status.name), title: issue.fields.summary, assignee: issue.fields.assignee.name }, function(data) {
 			    if (data.json_data.errors) {
 				alert(data.json_data.errors);
 			    }
@@ -143,6 +181,7 @@ function queryIssues() {
 	    }
 
 	    $('#overlay_container').hide();
+	    assigneeColourize();
 	},
 	'json'
     );
