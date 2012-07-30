@@ -1,0 +1,7 @@
+TODO
+
+Add issue type and severity
+
+BUGS
+
+Ticket needs to get updated when it changes
