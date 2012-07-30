@@ -151,7 +151,7 @@ function queryIssues() {
     var password = $('#password').val();
     var sprint = $('#sprint').val();
 
-    $.post('/curl/get_issues', { username: username, password: password, sprint: sprint }, function(data) {
+    $.post('/curl/get_issues', { username: username, password: password, sprint: sprint, project: 'PY' }, function(data) {
 	    var issues = data.json_data.issues;
 
 	    for (var i = 0; i < issues.length; i++) {

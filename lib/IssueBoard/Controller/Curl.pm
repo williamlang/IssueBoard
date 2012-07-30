@@ -33,12 +33,13 @@ sub get_issues :Local {
 
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
+	my $project = $c->req->param('project');
     my $fixVersion = $c->req->param('sprint');
     my $page = 0;
     my $pageCount = 1;
     my $perPage = 50;
 
-    my $url = "https://pythian.jira.com/rest/api/2/search?jql=project='PY'+AND+fixVersion='Sprint+$fixVersion'&fields=key,summary,assignee,status";
+    my $url = "https://pythian.jira.com/rest/api/2/search?jql=project='$project'+AND+fixVersion='Sprint+$fixVersion'&fields=key,summary,assignee,status";
     my $curl = WWW::Curl::Easy->new;
     my $json_response;
 
