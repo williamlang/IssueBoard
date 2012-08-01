@@ -1,2 +1,3 @@
 /root/tickets/
 *.swp
+/blib/
