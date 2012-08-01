@@ -2,7 +2,6 @@ package IssueBoard::Controller::Board;
 use Moose;
 use namespace::autoclean;
 use strict;
-use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -41,25 +40,25 @@ sub get_issues :Local {
     my @files;
 
     if (opendir(DIR, $c->config->{home} . "/root/tickets/")) {
-	@files = readdir(DIR);
+		@files = readdir(DIR);
 
-	for my $file (@files) {
-	    if (open FILE, "<", $c->config->{home} . "/root/tickets/$file") {
-		my @lines = <FILE>;
+		for my $file (@files) {
+	    	if (open FILE, "<", $c->config->{home} . "/root/tickets/$file") {
+				my @lines = <FILE>;
 
-	        for my $line (@lines) { chomp $line if $line; }
-		push @tickets, {
-		        id => $lines[0],
-			title => $lines[1],
-			section => $lines[2],
-			assignee => $lines[3],
-			priority => $lines[4],
-			type => $lines[5]
-		} if $lines[0] && $lines[1] && $lines[2] && $lines[3] && $lines[4] && $lines[5];
-	    }
-	}
+	        	for my $line (@lines) { chomp $line if $line; }
+				push @tickets, {
+			        id => $lines[0],
+					title => $lines[1],
+					section => $lines[2],
+					assignee => $lines[3],
+					priority => $lines[4],
+					type => $lines[5]
+				} if $lines[0] && $lines[1] && $lines[2] && $lines[3] && $lines[4] && $lines[5];
+	    	}
+		}
 
-	closedir(DIR);
+		closedir(DIR);
     }
 
     $c->stash->{json_data} = {
@@ -78,14 +77,14 @@ sub update_issue :Local {
     my $file_contents = "";
 
     for (qw(id title section assignee priority type)) {
-	if ($c->req->body_params->{$_}) {
-	    %ticket->{"$_"} = $c->req->body_params->{$_};
-	    $file_contents .= %ticket->{"$_"} . "\n";
-	}
-	else {
-	    $error = 1;
-	    push @messages, "$_ was not specified.";
-	}
+		if ($c->req->body_params->{$_}) {
+		    $ticket{"$_"} = $c->req->body_params->{$_};
+	    	$file_contents .= $ticket{"$_"} . "\n";
+		}
+		else {
+	    	$error = 1;
+		    push @messages, "$_ was not specified.";
+		}
     }
 
     if ($error) {
@@ -95,7 +94,7 @@ sub update_issue :Local {
     } 
     else {
 	# open file for read -- we don't care what's in there, so truncate and overwrite
-        if (open FILE, ">", $c->config->{home} . "/root/tickets/" . %ticket->{'id'} . ".txt") {
+        if (open FILE, ">", $c->config->{home} . "/root/tickets/$ticket{id}.txt") {
 	    print FILE $file_contents;
 	    close FILE;
 
