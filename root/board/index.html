@@ -108,11 +108,22 @@ $(document).ready(function(){
 	    var section = $(this).attr('id');
 	    var title = $('#' + ticket_id + '_title').html();
 	    var assignee = $('#' + ticket_id + '_assignee').html();
+		var priority = $('#' + ticket_id + '_priority').html();
+		var type = $('#' + ticket_id + '_type').html();
 
-	    $.post('update_issue', { id: ticket_id, section: section, title: title, assignee: assignee }, function(data) {
-		if (data.json_data.errors) {
-		    alert(data.json_data.errors);
-		}
+	    $.post('update_issue', 
+		{
+			id: ticket_id, 
+			section: section, 
+			title: title, 
+			assignee: assignee, 
+			priority: priority, 
+			type: type 
+		},
+		function(data) {
+			if (data.json_data.errors) {
+		    	alert(data.json_data.errors);
+			}
 	    });
 
 	    ui.draggable.remove();
