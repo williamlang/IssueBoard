@@ -61,7 +61,10 @@ div.ticket_block {
 div.ticket_block p {
 	padding: 5px;
 	display:block;
-	min-height:100px;
+}
+
+div.ticket_block p.ticket_title {
+    min-height:100px;
 }
 
 div.ticket_block p.assignee {

@@ -131,7 +131,7 @@ $(document).ready(function(){
 	else {
 	    for (var i = 0; i < data.json_data.tickets.length; i++) {
 		var ticket_data = data.json_data.tickets[i];
-		ticket_array.push(new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee));
+		ticket_array.push(new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
 		assignee_array.push(ticket_data.assignee, 1);
 		$('#' + ticket_data.section).append(ticket_array[ticket_array.length - 1].toObj()); 
 	    }
@@ -161,22 +161,36 @@ function queryIssues() {
 		    var ticketFound = false;
 
 		    for (var j = 0; j < ticket_array.length; j++) {
-			if (ticket_array[j].getId() == issue.key) {
-			    ticketFound = true;
+			if (ticket_array[j].id == issue.key) {
+			    ticketFound = j;
 			}
 		    }
 
 		    if (!ticketFound) {
-			ticket_array.push(new ticket(issue.key, issue.fields.summary, issue.fields.assignee.name));
+			ticket_array.push(new ticket(issue.key, issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
 			$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array[ticket_array.length - 1].toObj());
 			assignee_array.push(issue.fields.assignee.name, 1);
-
-			$.post('update_issue', { id: issue.key, section: convertJIRAStatus(issue.fields.status.name), title: issue.fields.summary, assignee: issue.fields.assignee.name }, function(data) {
-			    if (data.json_data.errors) {
-				alert(data.json_data.errors);
-			    }
-			});
 		    }
+		    else {
+			var sectionDiv = $('#' + issue.key).parent();
+			section = sectionDiv.attr('id');
+			$('#' + issue.key).attr('class', issue.fields.assignee.name);			
+		    }
+
+		    $.post('update_issue',
+		    {
+		        id: issue.key, 
+			section: convertJIRAStatus(issue.fields.status.name), 
+			title: issue.fields.summary, 
+			assignee: issue.fields.assignee.name,
+			priority: issue.fields.priority.name,
+			type: issue.fields.issuetype.name
+		    },
+		    function(data) {
+		        if (data.json_data.errors) {
+			   alert(data.json_data.errors);
+			}
+		    });
 		}
 	    }
 

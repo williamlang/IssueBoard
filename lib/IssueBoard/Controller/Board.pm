@@ -2,6 +2,7 @@ package IssueBoard::Controller::Board;
 use Moose;
 use namespace::autoclean;
 use strict;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -40,24 +41,25 @@ sub get_issues :Local {
     my @files;
 
     if (opendir(DIR, $c->config->{home} . "/root/tickets/")) {
-		@files = readdir(DIR);
+	@files = readdir(DIR);
 
-		for my $file (@files) {
-			if (open FILE, "<", $c->config->{home} . "/root/tickets/$file") {
-				my @lines = <FILE>;
+	for my $file (@files) {
+	    if (open FILE, "<", $c->config->{home} . "/root/tickets/$file") {
+		my @lines = <FILE>;
 
-				for my $line (@lines) { chomp $line if $line; }
+	        for my $line (@lines) { chomp $line if $line; }
+		push @tickets, {
+		        id => $lines[0],
+			title => $lines[1],
+			section => $lines[2],
+			assignee => $lines[3],
+			priority => $lines[4],
+			type => $lines[5]
+		} if $lines[0] && $lines[1] && $lines[2] && $lines[3] && $lines[4] && $lines[5];
+	    }
+	}
 
-				push @tickets, {
-					id => $lines[0],
-					title => $lines[1],
-					section => $lines[2],
-					assignee => $lines[3]
-				} if $lines[0] && $lines[1] && $lines[2] && $lines[3];
-			}
-		}
-
-		closedir(DIR);
+	closedir(DIR);
     }
 
     $c->stash->{json_data} = {
@@ -72,70 +74,40 @@ sub update_issue :Local {
 
     my $error = 0;
     my @messages = ();
-    my $ticket_id;
-    my $section;
-    my $title;
-    my $assignee;
+    my %ticket = ();
+    my $file_contents = "";
 
-    if ($c->req->body_params->{id}) {
-        $ticket_id = $c->req->body_params->{id};
-    }
-    else {
-		$error = 1;
-		push @messages, "No ticket id specified.";
-    }
-
-    if ($c->req->body_params->{section}) {
-		$section = $c->req->body_params->{section};
-    }
-    else {
-		$error = 1;
-		push @messages, "No section specified.";
-    }
-
-    if ($c->req->body_params->{title}) {
-		$title = $c->req->body_params->{title};
-    }
-    else {
-		$error = 1;
-		push @messages, "No title specified.";
-    }
-
-    if ($c->req->body_params->{assignee}) {
-		$assignee = $c->req->body_params->{assignee};
-    }
-    else {
-		$error = 1;
-		push @messages, "No assignee specified.";
+    for (qw(id title section assignee priority type)) {
+	if ($c->req->body_params->{$_}) {
+	    %ticket->{"$_"} = $c->req->body_params->{$_};
+	    $file_contents .= %ticket->{"$_"} . "\n";
+	}
+	else {
+	    $error = 1;
+	    push @messages, "$_ was not specified.";
+	}
     }
 
     if ($error) {
         $c->stash->{json_data} = {
-	    	'errors' => \@messages 
-		};
+	    'errors' => \@messages 
+	};
     } 
     else {
-		my $file_contents = <<END_FILE;
-$ticket_id
-$title
-$section
-$assignee
-END_FILE
+	# open file for read -- we don't care what's in there, so truncate and overwrite
+        if (open FILE, ">", $c->config->{home} . "/root/tickets/" . %ticket->{'id'} . ".txt") {
+	    print FILE $file_contents;
+	    close FILE;
 
-		# open file for read -- we don't care what's in there, so truncate and overwrite
-		if (open FILE, ">", $c->config->{home} . "/root/tickets/${ticket_id}.txt") {
-	    	print FILE $file_contents;
-		    close FILE;
-
-		    $c->stash->{json_data} = {
-				'success' => ['Ticket updated']
-	    	};
-		}
-		else {
-		    $c->stash->{json_data} = {
-				'errors' => ['Could not open and/or create file. ' . $!]
-	    	}
-		}
+	    $c->stash->{json_data} = {
+		'success' => ['Ticket updated']
+	    };
+	}
+	else {
+	    $c->stash->{json_data} = {
+		'errors' => ['Could not open and/or create file. ' . $!]
+	    };
+	}
     }
 
     $c->forward('View::JSON');
