@@ -1,7 +1,12 @@
 TODO
 
-Add issue type and severity
+Add issue type and severity (DONE)
+When clicking a user in the user legend, show only those tickets
+Add button to minimize/maximize all tickets
+Refactor javascript: move to one consolidated file (ie remove from root/board/index.html)
+Group tickets by owner in sections?
+Refactor ticket_array to use observable array to make it easier to find existing tickets
 
 BUGS
 
-Ticket needs to get updated when it changes
+Ticket needs to get updated when it changes (DONE)
