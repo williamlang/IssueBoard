@@ -21,6 +21,7 @@
 
 	<h2>Options</h2>
 	<input id="flush" type="button" value="Flush Issues" />
+	<input id="toggle_all" type="button" value="Minimize All" />
 </div>
 
 <div id="legend">
@@ -102,6 +103,19 @@ $(document).ready(function(){
 	queryIssues();
 
 	$('#password').val('');
+    });
+
+    $('#toggle_all').click(function(){
+	for (var t in ticket_array.data) {
+	    ticket_toggle(t);
+	}
+
+	if ($(this).val() == "Minimize All") {
+	    $(this).val("Maximize All");
+	}
+	else {
+	    $(this).val("Minimize All");
+	}
     });
 
     $('#flush').click(function(){
