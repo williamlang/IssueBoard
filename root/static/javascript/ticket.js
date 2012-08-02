@@ -21,8 +21,8 @@ function ticket(id, title, assignee, priority, type) {
 	this.toObj = function() {
 		// Object hasn't been created yet
 		if (!this.obj) {
-			var ticket_block   = $('<div id="' + this.id + '" class="ticket_block">');
-			var ticket_header  = $('<div class="ticket_header">');
+			var ticket_block   = $('<div id="' + this.id + '" class="ticket_block"></div>');
+			var ticket_header  = $('<div class="ticket_header"></div>');
 			var ticket_heading = $('<h3 class="' + this.assignee + ' h3_top">' + this.id + '</h3>');
 			var ticket_toggle  = $('<span style="float:right;margin-top:-30px;"><input type="button" value="-" id="' + this.id + '_toggle" onclick="Javacript:ticket_toggle(\'' + this.id + '\');" /></span>');
 
