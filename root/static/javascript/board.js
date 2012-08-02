@@ -15,3 +15,8 @@ function stringToColor(str) {
 
     return "#" + color;
 }
+
+function convertJIRAStatus(jiraStatus) {
+    return jiraStatus.toLowerCase().replace(/\s/, "_");
+}
+

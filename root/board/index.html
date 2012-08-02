@@ -68,7 +68,7 @@
 </div>
 
 <script>
-var ticket_array = [];
+var ticket_array = new observableArray();
 var assignee_array = new observableArray();
 
 assignee_array.onNewItem = function(key){
@@ -94,7 +94,7 @@ $(document).ready(function(){
 	$.get('flush_issues', function(data){
 	    if (data.json_message == "Issues flushed.") {
 		$('.issue_section').html('');
-		ticket_array = [];
+		ticket_array.data = [];
 		assignee_array.data = {};
 	    }
 	});
@@ -108,22 +108,22 @@ $(document).ready(function(){
 	    var section = $(this).attr('id');
 	    var title = $('#' + ticket_id + '_title').html();
 	    var assignee = $('#' + ticket_id + '_assignee').html();
-		var priority = $('#' + ticket_id + '_priority').html();
-		var type = $('#' + ticket_id + '_type').html();
+	    var priority = $('#' + ticket_id + '_priority').html();
+	    var type = $('#' + ticket_id + '_type').html();
 
 	    $.post('update_issue', 
-		{
-			id: ticket_id, 
-			section: section, 
-			title: title, 
-			assignee: assignee, 
-			priority: priority, 
-			type: type 
-		},
-		function(data) {
-			if (data.json_data.errors) {
-		    	alert(data.json_data.errors);
-			}
+	    {
+		id: ticket_id, 
+		section: section, 
+		title: title, 
+		assignee: assignee, 
+		priority: priority, 
+		type: type 
+	    },
+	    function(data) {
+		if (data.json_data.errors) {
+		    alert(data.json_data.errors);
+		}
 	    });
 
 	    ui.draggable.remove();
@@ -142,9 +142,9 @@ $(document).ready(function(){
 	else {
 	    for (var i = 0; i < data.json_data.tickets.length; i++) {
 		var ticket_data = data.json_data.tickets[i];
-		ticket_array.push(new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
+		ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
 		assignee_array.push(ticket_data.assignee, 1);
-		$('#' + ticket_data.section).append(ticket_array[ticket_array.length - 1].toObj()); 
+		$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
 	    }
 
 	    assigneeColourize();
@@ -169,23 +169,20 @@ function queryIssues() {
 		var issue = issues[i];
 	
 		if (issue.fields.assignee.name != "procter") {
-		    var ticketFound = false;
-
-		    for (var j = 0; j < ticket_array.length; j++) {
-			if (ticket_array[j].id == issue.key) {
-			    ticketFound = j;
-			}
-		    }
-
-		    if (!ticketFound) {
-			ticket_array.push(new ticket(issue.key, issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
-			$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array[ticket_array.length - 1].toObj());
+		    if (!ticket_array.data[issue.key]) {
+			ticket_array.push(issue.key, new ticket(issue.key, issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
+			$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
 			assignee_array.push(issue.fields.assignee.name, 1);
 		    }
 		    else {
 			var sectionDiv = $('#' + issue.key).parent();
 			section = sectionDiv.attr('id');
-			$('#' + issue.key).attr('class', issue.fields.assignee.name);			
+			$('.' + ticket_array.data[issue.key].assignee).removeClass(ticket_array.data[issue.key].assignee).addClass(issue.fields.assignee.name);
+
+			ticket_array.data[issue.key].title = issue.fields.summary;
+			ticket_array.data[issue.key].assignee = issue.fields.assignee.name;
+			ticket_array.data[issue.key].priority = issue.fields.priority.name;
+			ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
 		    }
 
 		    $.post('update_issue',
@@ -210,9 +207,5 @@ function queryIssues() {
 	},
 	'json'
     );
-}
-
-function convertJIRAStatus(jiraStatus) {
-    return jiraStatus.toLowerCase().replace(/\s/, "_");
 }
 </script>
