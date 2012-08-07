@@ -6,6 +6,12 @@ Add button to minimize/maximize all tickets (DONE)
 Refactor javascript: move to one consolidated file (ie remove from root/board/index.html)
 Group tickets by owner in sections?
 Refactor ticket_array to use observable array to make it easier to find existing tickets (DONE)
+Order by priority
+more emphasis on importance and type
+tweak fonts
+separate two rows or sections (blocked/rework/review/sql-review) ?
+filter by release target
+filter by team/group
 
 BUGS
 
