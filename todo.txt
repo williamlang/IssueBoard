@@ -16,3 +16,4 @@ filter by team/group
 BUGS
 
 Ticket needs to get updated when it changes (DONE)
+When updating tickets already on the board some tickets have incorrect coloring
