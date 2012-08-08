@@ -73,9 +73,9 @@ var ticket_array = new observableArray();
 var assignee_array = new observableArray();
 
 assignee_array.onNewItem = function(key){
-    $('#legend table').append('<tr class="legend_user"><td id="legend_' + key + '">' + key + '</td><td class="' + key + '">&nbsp;</td></tr>');
+    $('#legend table').append('<tr class="legend_user legend_' + key + '"><td id="legend_' + key + '">' + key + '</td><td class="' + key + '">&nbsp;</td></tr>');
 
-    $('#legend_' + key).click(function() {
+    $('.legend_' + key + ' *').click(function() {
 	for (var id in ticket_array.data) {
 	    if (ticket_array.data[id].assignee == key) {
 		$('#' + id).show();
