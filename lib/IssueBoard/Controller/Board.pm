@@ -89,24 +89,24 @@ sub update_issue :Local {
 
     if ($error) {
         $c->stash->{json_data} = {
-	    'errors' => \@messages 
-	};
+			'errors' => \@messages 
+		};
     } 
     else {
 	# open file for read -- we don't care what's in there, so truncate and overwrite
         if (open FILE, ">", $c->config->{home} . "/root/tickets/$ticket{id}.txt") {
-	    print FILE $file_contents;
-	    close FILE;
+			print FILE $file_contents;
+			close FILE;
 
-	    $c->stash->{json_data} = {
-		'success' => ['Ticket updated']
-	    };
-	}
-	else {
-	    $c->stash->{json_data} = {
-		'errors' => ['Could not open and/or create file. ' . $!]
-	    };
-	}
+			$c->stash->{json_data} = {
+				'success' => ['Ticket updated']
+	    	};
+		}
+		else {
+			$c->stash->{json_data} = {
+			'errors' => ['Could not open and/or create file. ' . $!]
+			};
+		}
     }
 
     $c->forward('View::JSON');
@@ -120,13 +120,13 @@ sub flush_issues :Local {
     my @files;
 
     if (opendir(DIR, $c->config->{home} . "/root/tickets")) {
-	@files = readdir(DIR);
+		@files = readdir(DIR);
 
-	for my $file (@files) {
-	    unlink($c->config->{home} . "/root/tickets/$file");
-	}
+		for my $file (@files) {
+			unlink($c->config->{home} . "/root/tickets/$file");
+		}
 
-	closedir(DIR);
+		closedir(DIR);
     }
 
     $c->stash->{json_message} = "Issues flushed.";

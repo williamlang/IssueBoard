@@ -79,7 +79,7 @@ assignee_array.onNewItem = function(key){
 
     $('.legend_' + key + ' *').click(function() {
 		for (var id in ticket_array.data) {
-	    	if (ticket_array.data[id].assignee == key) {
+			if ($('#' + id + '_assignees').hasClass(key)) { 
 				$('#' + id).show();
 	    	} else {
 				$('#' + id).hide();
@@ -136,7 +136,7 @@ $(document).ready(function(){
 			var ticket_id = ui.draggable.attr('id');
 			var section = $(this).attr('id');
 			var title = $('#' + ticket_id + '_title').html();
-			var assignee = $('#' + ticket_id + '_assignee').html();
+			var assignee = $('#' + ticket_id + '_assignees').html();
 			var priority = $('#' + ticket_id + '_priority').html();
 			var type = $('#' + ticket_id + '_type').html();
 
