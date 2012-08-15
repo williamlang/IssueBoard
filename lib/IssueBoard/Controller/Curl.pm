@@ -39,35 +39,35 @@ sub get_issues :Local {
     my $pageCount = 1;
     my $perPage = 50;
 
-    my $url = "https://pythian.jira.com/rest/api/2/search?jql=project='PY'+AND+fixVersion='Sprint+$fixVersion'&fields=key,summary,assignee,status,issuetype,priority";
+    my $url = "https://pythian.jira.com/rest/api/2/search?jql=project='$project'+AND+fixVersion='Sprint+$fixVersion'&fields=key,summary,assignee,status,issuetype,priority";
     my $curl = WWW::Curl::Easy->new;
     my $json_response;
 
     while ($page < $pageCount) {
-	my $startAt = $page * $perPage;
-	$curl->setopt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-	$curl->setopt(CURLOPT_USERPWD, "$username:$password");
-	$curl->setopt(CURLOPT_URL, $url . "&startAt=" . $startAt);
+		my $startAt = $page * $perPage;
+		$curl->setopt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		$curl->setopt(CURLOPT_USERPWD, "$username:$password");
+		$curl->setopt(CURLOPT_URL, $url . "&startAt=" . $startAt);
 
-	my $response_body = '';
-	open(my $fileb, ">",\$response_body);
-	$curl->setopt(CURLOPT_WRITEDATA, $fileb);
-	my $return_code = $curl->perform;
-	close($fileb);
+		my $response_body = '';
+		open(my $fileb, ">",\$response_body);
+		$curl->setopt(CURLOPT_WRITEDATA, $fileb);
+		my $return_code = $curl->perform;
+		close($fileb);
 
-	# I do this because View::JSON inteprets response_body as a string and thus escapes everything
-        my $json = JSON->new;
-	my $json_text = $json->decode($response_body);
+		# I do this because View::JSON inteprets response_body as a string and thus escapes everything
+		my $json = JSON->new;
+		my $json_text = $json->decode($response_body);
 
-	if (!$json_response) {
-	    $json_response = $json_text;
-	}
-	else {
-	    push $json_response->{issues}, @{$json_text->{issues}};
-	}
+		if (!$json_response) {
+			$json_response = $json_text;
+		}
+		else {
+			push $json_response->{issues}, @{$json_text->{issues}};
+		}
 
-	$page++;
-	$pageCount = ceil($json_text->{total} / $perPage);
+		$page++;
+		$pageCount = ceil($json_text->{total} / $perPage);
     }
 
     $c->stash->{json_data} = $json_response;

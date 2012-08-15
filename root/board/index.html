@@ -2,64 +2,66 @@
 	<h2>JIRA Credentials</h2>
 	<table id="login">
 	    <tr>
-		<td>Username</td>
-		<td><input type="text" id="username" name="username" /></td>
+			<td>Username</td>
+			<td><input type="text" id="username" name="username" /></td>
 	    </tr>
 	    <tr>
-		<td>Password</td>
-		<td><input type="password" id="password" name="password" /></td>
+			<td>Password</td>
+			<td><input type="password" id="password" name="password" /></td>
 	    </tr>
 	    <tr>
-		<td>Sprint</td>
-		<td><input type="text" id="sprint" name="sprint" /></td>
+			<td>Sprint</td>
+			<td><input type="text" id="sprint" name="sprint" /></td>
 	    </tr>
 	    <tr>
-		<td>&nbsp;</td>
-		<td style="text-align:right;"><input type="button" value="Update" id="update" /></td>
+			<td>&nbsp;</td>
+			<td style="text-align:right;"><input type="button" value="Update" id="update" /></td>
 	    </tr>
 	</table>
 
-	<h2>Options</h2>
-	<input id="flush" type="button" value="Flush Issues" />
-	<input id="toggle_all" type="button" value="Minimize All" />
+	<div style="clear:both;">
+		<h2>Options</h2>
+		<input id="flush" type="button" value="Flush Issues" />
+		<input id="toggle_all" type="button" value="Minimize All" />
+	</div>
 </div>
 
 <div id="legend">
     <table>
-	<tr>
-	    <th>User</th>
-	    <th>Color</th>
-	</tr>
-	<tr>
-	    <td id="legend_all" colspan="2">all</td>
-	</tr>
+		<tr>
+			<th>User</th>
+			<th>Color</th>
+		</tr>
+		<tr>
+			<td id="legend_all" colspan="2">all</td>
+		</tr>
     </table>
 </div>
 
 <table id="issueboard">	
     <tr>
-	<th>Open</th>
-	<th>In Progress</th>
-	<th>Review</th>
-	<th>SQL Review</th>
-	<th>Merge</th>
-	<th>Test</th>
-	<th>System Test</th>
-	<th>Rework</th>
-	<th>Blocked</th>
-	<th>Done</th>
+		<th>Open</th>
+		<th>In Progress</th>
+		<th>Review</th>
+		<th>SQL Review</th>
+		<th>Merge</th>
+		<th>Test</th>
+		<th>System Test</th>
+		<th>Rework</th>
+		<th>Blocked</th>
+		<th>Done</th>
     </tr>
     <tr>
-	<td id="open" class="border_right issue_section"></td>
-	<td id="in_progress" class="border_right issue_section"></td>
-	<td id="review" class="border_right issue_section"></td>
-	<td id="sql_review" class="border_right issue_section"></td>
-	<td id="merge" class="border_right issue_section"></td>
-	<td id="test" class="border_right issue_section"></td>
-	<td id="system_test" class="border_right issue_section"></td>
-	<td id="rework" class="border_right issue_section"></td>
-	<td id="blocked" class="border_right issue_section"></td>
-	<td id="closed" class="issue_section"></td>
+		<td id="open" class="border_right issue_section"></td>
+		<td id="in_progress" class="border_right issue_section"></td>
+		<td id="review" class="border_right issue_section"></td>
+		<td id="sql_review" class="border_right issue_section"></td>
+		<td id="merge" class="border_right issue_section"></td>
+		<td id="test" class="border_right issue_section"></td>
+		<td id="system_test" class="border_right issue_section"></td>
+		<td id="rework" class="border_right issue_section"></td>
+		<td id="blocked" class="border_right issue_section"></td>
+		<td id="closed" class="issue_section"></td>
     </tr>
 </table>
 
@@ -76,13 +78,13 @@ assignee_array.onNewItem = function(key){
     $('#legend table').append('<tr class="legend_user legend_' + key + '"><td id="legend_' + key + '">' + key + '</td><td class="' + key + '">&nbsp;</td></tr>');
 
     $('.legend_' + key + ' *').click(function() {
-	for (var id in ticket_array.data) {
-	    if (ticket_array.data[id].assignee == key) {
-		$('#' + id).show();
-	    } else {
-		$('#' + id).hide();
-	    }
-	}
+		for (var id in ticket_array.data) {
+	    	if (ticket_array.data[id].assignee == key) {
+				$('#' + id).show();
+	    	} else {
+				$('#' + id).hide();
+	    	}
+		}
     });
 };
 
@@ -96,87 +98,86 @@ function assigneeColourize() {
 $(document).ready(function(){
 
     $('#legend_all').click(function(){
-	$('.ticket_block').show();
+		$('.ticket_block').show();
     });
 
     $('#update').click(function() {
-	queryIssues();
-
-	$('#password').val('');
+		queryIssues();
+		$('#password').val('');
     });
 
     $('#toggle_all').click(function(){
-	for (var t in ticket_array.data) {
-	    ticket_toggle(t);
-	}
+		for (var t in ticket_array.data) {
+		    ticket_toggle(t);
+		}
 
-	if ($(this).val() == "Minimize All") {
-	    $(this).val("Maximize All");
-	}
-	else {
-	    $(this).val("Minimize All");
-	}
+		if ($(this).val() == "Minimize All") {
+	    	$(this).val("Maximize All");
+		}
+		else {
+	    	$(this).val("Minimize All");
+		}
     });
 
     $('#flush').click(function(){
-	$.get('flush_issues', function(data){
-	    if (data.json_message == "Issues flushed.") {
-		$('.issue_section').html('');
-		ticket_array.data = [];
-		assignee_array.data = {};
-	    }
-	});
+		$.get('flush_issues', function(data){
+	    	if (data.json_message == "Issues flushed.") {
+				$('.issue_section').html('');
+				ticket_array.data = [];
+				assignee_array.data = {};
+	    	}
+		});
 
-	$('#legend table tr.legend_user').remove();
+		$('#legend table tr.legend_user').remove();
     });
 
     $('.issue_section').droppable({
         drop: function( event, ui ) {
-	    var ticket_id = ui.draggable.attr('id');
-	    var section = $(this).attr('id');
-	    var title = $('#' + ticket_id + '_title').html();
-	    var assignee = $('#' + ticket_id + '_assignee').html();
-	    var priority = $('#' + ticket_id + '_priority').html();
-	    var type = $('#' + ticket_id + '_type').html();
+			var ticket_id = ui.draggable.attr('id');
+			var section = $(this).attr('id');
+			var title = $('#' + ticket_id + '_title').html();
+			var assignee = $('#' + ticket_id + '_assignee').html();
+			var priority = $('#' + ticket_id + '_priority').html();
+			var type = $('#' + ticket_id + '_type').html();
 
-	    $.post('update_issue', 
-	    {
-		id: ticket_id, 
-		section: section, 
-		title: title, 
-		assignee: assignee, 
-		priority: priority, 
-		type: type 
-	    },
-	    function(data) {
-		if (data.json_data.errors) {
-		    alert(data.json_data.errors);
+			$.post('update_issue', 
+			{
+				id: ticket_id, 
+				section: section, 
+				title: title, 
+				assignee: assignee, 
+				priority: priority, 
+				type: type 
+			},
+			function(data) {
+				if (data.json_data.errors) {
+					alert(data.json_data.errors);
+				}
+			});
+
+			ui.draggable.remove();
+			ui.draggable.removeAttr('style');
+			$(this).append(ui.draggable);
+
+			// Re-init draggable
+			$('.ticket_block').draggable();
 		}
-	    });
-
-	    ui.draggable.remove();
-	    ui.draggable.removeAttr('style');
-	    $(this).append(ui.draggable);
-
-	    // Re-init draggable
-	    $('.ticket_block').draggable();
-	}
     });
 
     $.get('get_issues', function(data) {
-	if (data.json_data.errors) {
-	    alert(data.json_data.errors);
-	}
-	else {
-	    for (var i = 0; i < data.json_data.tickets.length; i++) {
-		var ticket_data = data.json_data.tickets[i];
-		ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
-		assignee_array.push(ticket_data.assignee, 1);
-		$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
-	    }
+		if (data.json_data.errors) {
+			alert(data.json_data.errors);
+		}
+		else {
+			for (var i = 0; i < data.json_data.tickets.length; i++) {
+				var ticket_data = data.json_data.tickets[i];
+				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
+				assignee_array.push(ticket_data.assignee, 1);
+				$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
+			}
 
-	    assigneeColourize();
-	}
+			assigneeColourize();
+		}
     });
 });
 
@@ -194,40 +195,43 @@ function queryIssues() {
 	    var issues = data.json_data.issues;
 
 	    for (var i = 0; i < issues.length; i++) {
-		var issue = issues[i];
-	
-		if (issue.fields.assignee.name != "procter") {
-		    if (!ticket_array.data[issue.key]) {
-			ticket_array.push(issue.key, new ticket(issue.key, issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
-			$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
-			assignee_array.push(issue.fields.assignee.name, 1);
-		    }
-		    else {
-			var sectionDiv = $('#' + issue.key).parent();
-			section = sectionDiv.attr('id');
-			$('.' + ticket_array.data[issue.key].assignee).removeClass(ticket_array.data[issue.key].assignee).addClass(issue.fields.assignee.name);
+			var issue = issues[i];
+		
+			if (issue.fields.assignee.name != "procter") {
+				if (!ticket_array.data[issue.key]) {
+					ticket_array.push(issue.key, new ticket(issue.key, issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
+					$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
+					assignee_array.push(issue.fields.assignee.name, 1);
+				}
+				else {
+					$('.' + ticket_array.data[issue.key].assignee).removeClass(ticket_array.data[issue.key].assignee).addClass(issue.fields.assignee.name);
+					
+					ticket_array.data[issue.key].title = issue.fields.summary;
 
-			ticket_array.data[issue.key].title = issue.fields.summary;
-			ticket_array.data[issue.key].assignee = issue.fields.assignee.name;
-			ticket_array.data[issue.key].priority = issue.fields.priority.name;
-			ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
-		    }
+					// This is a new assignee for the ticket
+					if (!ticket_array.data[issue.key].assignee.data[issue.fields.assignee.name]) {
+						ticket_array.data[issue.key].assignee.push(issue.fields.assignee.name);
+					}						
 
-		    $.post('update_issue',
-		    {
-		        id: issue.key, 
-			section: convertJIRAStatus(issue.fields.status.name), 
-			title: issue.fields.summary, 
-			assignee: issue.fields.assignee.name,
-			priority: issue.fields.priority.name,
-			type: issue.fields.issuetype.name
-		    },
-		    function(data) {
-		        if (data.json_data.errors) {
-			   alert(data.json_data.errors);
+					ticket_array.data[issue.key].priority = issue.fields.priority.name;
+					ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
+				}
+
+				$.post('update_issue',
+				{
+					id: issue.key, 
+					section: ticket_array.data[issue.key].section, 
+					title: issue.fields.summary, 
+					assignee: issue.fields.assignee.name,
+					priority: issue.fields.priority.name,
+					type: issue.fields.issuetype.name
+				},
+				function(data) {
+					if (data.json_data.errors) {
+						alert(data.json_data.errors);
+					}
+				});
 			}
-		    });
-		}
 	    }
 
 	    $('#overlay_container').hide();

@@ -12,7 +12,9 @@ function ticket(id, title, assignee, priority, type) {
 	// Represents the HTML object of the ticket
 	this.obj;
 	// Represents who the ticked is assigned to
-	this.assignee = assignee;
+	this.assignee = new observableArray();
+	this.assignee.push(assignee);
+
 	// Represents the priority
 	this.priority = priority;
 	// Represents the type
@@ -23,15 +25,16 @@ function ticket(id, title, assignee, priority, type) {
 		if (!this.obj) {
 			var ticket_block   = $('<div id="' + this.id + '" class="ticket_block"></div>');
 			var ticket_header  = $('<div class="ticket_header"></div>');
-			var ticket_heading = $('<h3 class="' + this.assignee + ' h3_top">' + this.id + '</h3>');
+			var ticket_heading = $('<h3 class="' + this.assignee.data[0] + ' h3_top">' + this.id + '</h3>');
 			var ticket_toggle  = $('<span style="float:right;margin-top:-30px;"><input type="button" value="-" id="' + this.id + '_toggle" onclick="Javacript:ticket_toggle(\'' + this.id + '\');" /></span>');
 
 			ticket_header.append(ticket_heading);
 			ticket_header.append(ticket_toggle);
 			ticket_block.append(ticket_header);
 			ticket_block.append('<p id="' + this.id + '_title" class="ticket_title">' + this.title + '</p>');
+			ticket_block.append('<div id="' + this.id + '_assignees" style="display:none;">' + this.assignee.data.join(',') + '</div>');
 			ticket_block.append('<p><span id="' + this.id + '_priority">' + this.priority + '</span> <span id="' + this.id + '_type">' + this.type + '</span></p>');
-			ticket_block.append('<h3 id="' + this.id + '_assignee" class="' + this.assignee + ' h3_bottom">' + this.assignee + '</h3>');
+			ticket_block.append('<h3 id="' + this.id + '_assignee" class="' + this.assignee.data[0] + ' h3_bottom">' + this.assignee.data[0] + '</h3>');
 
 			ticket_block.draggable();
 			this.obj = ticket_block;
