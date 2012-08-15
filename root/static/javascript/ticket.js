@@ -13,7 +13,16 @@ function ticket(id, title, assignee, priority, type) {
 	this.obj;
 	// Represents who the ticked is assigned to
 	this.assignees = new observableArray();
-	this.assignees.push(assignee);
+	if (assignee.indexOf(',') != -1) {
+		var assigneeArray = assignee.split(',');
+
+		for (i = 0; i < assigneeArray.length; i++) {
+			this.assignees.push(assigneeArray[i]);
+		}
+	}
+	else {
+		this.assignees.push(assignee);
+	}
 
 	// Represents the priority
 	this.priority = priority;

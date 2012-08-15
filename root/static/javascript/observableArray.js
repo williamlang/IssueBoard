@@ -6,7 +6,7 @@ function observableArray() {
 
 		if (!obj) {
 			obj = key;
-			key = 0;
+			key = this.data.length;
 		}
 
 		var exists = this.data[key];

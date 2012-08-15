@@ -124,7 +124,7 @@ $(document).ready(function(){
 	    	if (data.json_message == "Issues flushed.") {
 				$('.issue_section').html('');
 				ticket_array.data = [];
-				assignee_array.data = {};
+				assignee_array.data = [];
 	    	}
 		});
 
@@ -172,7 +172,15 @@ $(document).ready(function(){
 			for (var i = 0; i < data.json_data.tickets.length; i++) {
 				var ticket_data = data.json_data.tickets[i];
 				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
-				assignee_array.push(ticket_data.assignee, 1);
+
+				if (ticket_data.assignee.indexOf(',') != -1) {
+					for (var a in ticket_array.assignee) {
+						assignee_array.push(a, 1);
+					}
+				}
+				else {
+					assignee_array.push(ticket_data.assignee, 1);
+				}
 				$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
 			}
 
@@ -209,9 +217,9 @@ function queryIssues() {
 					ticket_array.data[issue.key].title = issue.fields.summary;
 
 					// This is a new assignee for the ticket
-					if (!ticket_array.data[issue.key].assignee.data[issue.fields.assignee.name]) {
-						ticket_array.data[issue.key].assignee.push(issue.fields.assignee.name);
-					}						
+					if (ticket_array.data[issue.key].assignees.data.indexOf(issue.fields.assignee.name) == -1) {
+						ticket_array.data[issue.key].assignees.data.push(issue.fields.assignee.name);
+					}
 
 					ticket_array.data[issue.key].priority = issue.fields.priority.name;
 					ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
@@ -220,15 +228,20 @@ function queryIssues() {
 				$.post('update_issue',
 				{
 					id: issue.key, 
-					section: ticket_array.data[issue.key].section, 
+					section: $('#' + issue.key).parent().attr('id'), 
 					title: issue.fields.summary, 
-					assignee: issue.fields.assignee.name,
+					assignee: ticket_array.data[issue.key].assignees.data.join(','),
 					priority: issue.fields.priority.name,
 					type: issue.fields.issuetype.name
 				},
 				function(data) {
 					if (data.json_data.errors) {
 						alert(data.json_data.errors);
+					}
+					else {
+						// success
+						$('#' + issue.key + '_assignees').attr('class', ticket_array.data[issue.key].assignees.data.join(' '));
+						$('#' + issue.key + '_assignees').html(ticket_array.data[issue.key].assignees.data.join(','));
 					}
 				});
 			}
