@@ -65,7 +65,7 @@ div.ticket_block p {
 
 div.ticket_block p.ticket_title {
     min-height:100px;
-    word-wrap: break-word;
+	word-wrap:break-word;
 }
 
 div.ticket_block p.assignee {

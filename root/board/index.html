@@ -233,9 +233,18 @@ function queryIssues() {
 					
 					ticket_array.data[issue.key].title = issue.fields.summary;
 
-					// This is a new assignee for the ticket
-					if (ticket_array.data[issue.key].assignees.data.indexOf(issue.fields.assignee.name) == -1) {
-						ticket_array.data[issue.key].assignees.data.push(issue.fields.assignee.name);
+					// if the ticket has been returned to the original owner
+					if (ticket_array.data[issue.key].assignees.data[0] == issue.fields.assignee.name) {
+						// remove the history
+						ticket_array.data[issue.key].assignees = new observableArray();
+						ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
+						$('#' + issue.key).replaceWith(ticket_array.data[issue.key].toObj());						
+					}
+					else {
+						// This is a new assignee for the ticket
+						if (ticket_array.data[issue.key].assignees.data.indexOf(issue.fields.assignee.name) == -1) {
+							ticket_array.data[issue.key].assignees.data.push(issue.fields.assignee.name);
+						}
 					}
 
 					ticket_array.data[issue.key].priority = issue.fields.priority.name;
