@@ -29,11 +29,10 @@
 <div id="legend">
     <table>
 		<tr>
-			<th>User</th>
-			<th>Color</th>
+			<th>Active Users</th>
 		</tr>
 		<tr>
-			<td id="legend_all" colspan="2">all</td>
+			<td id="legend_all">all</td>
 		</tr>
     </table>
 </div>
@@ -75,7 +74,7 @@ var ticket_array = new observableArray();
 var assignee_array = new observableArray();
 
 assignee_array.onNewItem = function(key){
-    $('#legend table').append('<tr class="legend_user legend_' + key + '"><td id="legend_' + key + '">' + key + '</td><td class="' + key + '">&nbsp;</td></tr>');
+    $('#legend table').append('<tr class="legend_user legend_' + key + '"><td valign="bottom" id="legend_' + key + '">' + key + ' <div class="user_color ' + key + '">&nbsp;</div></td></tr>');
 
     $('.legend_' + key + ' *').click(function() {
 		for (var id in ticket_array.data) {
@@ -105,6 +104,17 @@ $(document).ready(function(){
 		queryIssues();
 		$('#password').val('');
     });
+    
+	$("#legend table tbody").on("hover", "td",
+		function(event) {
+			if(event.type == 'mouseleave') {
+				$(this).parent().removeClass("highlight");
+			}
+			else {
+				$(this).parent().addClass("highlight");
+			}
+		}
+  	);
 
     $('#toggle_all').click(function(){
 		for (var t in ticket_array.data) {
@@ -169,21 +179,28 @@ $(document).ready(function(){
 			alert(data.json_data.errors);
 		}
 		else {
+			var assignees = new Array();
 			for (var i = 0; i < data.json_data.tickets.length; i++) {
 				var ticket_data = data.json_data.tickets[i];
 				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
 
 				if (ticket_data.assignee.indexOf(',') != -1) {
 					for (var a in ticket_array.assignee) {
-						assignee_array.push(a, 1);
+						assignees.push(a);
 					}
 				}
 				else {
-					assignee_array.push(ticket_data.assignee, 1);
+					assignees.push(ticket_data.assignee);
 				}
 				$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
 			}
-
+			
+			assignees.sort();
+			
+			for (var i = 0; i < assignees.length; i++) {
+				assignee_array.push(assignees[i], 1)
+			}
+			
 			assigneeColourize();
 		}
     });
