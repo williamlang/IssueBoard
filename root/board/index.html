@@ -182,7 +182,7 @@ $(document).ready(function(){
 			var assignees = new Array();
 			for (var i = 0; i < data.json_data.tickets.length; i++) {
 				var ticket_data = data.json_data.tickets[i];
-				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
+				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.section, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
 
 				if (ticket_data.assignee.indexOf(',') != -1) {
 					for (var a in ticket_array.assignee) {
@@ -224,7 +224,7 @@ function queryIssues() {
 		
 			if (issue.fields.assignee.name != "procter") {
 				if (!ticket_array.data[issue.key]) {
-					ticket_array.push(issue.key, new ticket(issue.key, issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
+					ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
 					$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
 					assignee_array.push(issue.fields.assignee.name, 1);
 				}
@@ -234,11 +234,12 @@ function queryIssues() {
 					ticket_array.data[issue.key].title = issue.fields.summary;
 
 					// if the ticket has been returned to the original owner
-					if (ticket_array.data[issue.key].assignees.data[0] == issue.fields.assignee.name) {
+					if (ticket_array.data[issue.key].assignees.data.length > 1 && ticket_array.data[issue.key].assignees.data[0] == issue.fields.assignee.name) {
 						// remove the history
 						ticket_array.data[issue.key].assignees = new observableArray();
 						ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
-						$('#' + issue.key).replaceWith(ticket_array.data[issue.key].toObj());						
+						$('#' + issue.key + '_assignees').attr('class', ticket_array.data[issue.key].assignees.data[0]);
+						$('#' + issue.key + '_assignees').html(ticket_array.data[issue.key].assignees.data[0]);
 					}
 					else {
 						// This is a new assignee for the ticket
@@ -254,7 +255,7 @@ function queryIssues() {
 				$.post('update_issue',
 				{
 					id: issue.key, 
-					section: $('#' + issue.key).parent().attr('id'), 
+					section: ticket_array.data[issue.key].section, 
 					title: issue.fields.summary, 
 					assignee: ticket_array.data[issue.key].assignees.data.join(','),
 					priority: issue.fields.priority.name,

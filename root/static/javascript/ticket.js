@@ -4,9 +4,11 @@
 	Represents a JIRA ticket	
 */
 
-function ticket(id, title, assignee, priority, type) {
+function ticket(id, section, title, assignee, priority, type) {
 	// The ticket id ex: PY-1234
 	this.id = id;
+	// The ticket status / section
+	this.section = section;
 	// The ticket title, used in the ticket body
 	this.title = title;
 	// Represents the HTML object of the ticket
