@@ -17,6 +17,6 @@ click on assignee of ticket and change
 BUGS
 
 Ticket needs to get updated when it changes (DONE)
-When updating tickets already on the board some tickets have incorrect coloring
-sometimes when updating, the state of the ticket changes and is being updated on the page. the state should not be changed by updates
+When updating tickets already on the board some tickets have incorrect coloring (DONE)
+sometimes when updating, the state of the ticket changes and is being updated on the page. the state should not be changed by updates (DONE)
 
