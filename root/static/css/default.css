@@ -63,6 +63,10 @@ div.ticket_block p {
 	display:block;
 }
 
+div.ticket_block .assignee_edit {
+	padding:5px;
+}
+
 div.ticket_block p.ticket_title {
     min-height:100px;
 	word-wrap:break-word;

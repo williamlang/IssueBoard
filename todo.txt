@@ -3,7 +3,7 @@ TODO
 Add issue type and severity (DONE)
 When clicking a user in the user legend, show only those tickets (DONE)
 Add button to minimize/maximize all tickets (DONE)
-Refactor javascript: move to one consolidated file (ie remove from root/board/index.html)
+Refactor javascript: move to one consolidated file (ie remove from root/board/index.html) (DONE)
 Group tickets by owner in sections?
 Refactor ticket_array to use observable array to make it easier to find existing tickets (DONE)
 Order by priority
@@ -12,7 +12,7 @@ tweak fonts
 separate two rows or sections (blocked/rework/review/sql-review) ?
 filter by release target
 filter by team/group
-click on assignee of ticket and change
+click on assignee of ticket and change (DONE)
 
 BUGS
 
