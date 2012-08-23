@@ -96,8 +96,8 @@ $(document).ready(function(){
 		$.get('flush_issues', function(data){
 	    	if (data.json_message == "Issues flushed.") {
 				$('.issue_section').html('');
-				ticket_array.data = [];
-				assignee_array.data = [];
+				ticket_array.flush();
+				assignee_array.flush();
 	    	}
 		});
 

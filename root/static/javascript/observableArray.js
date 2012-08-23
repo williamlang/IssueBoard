@@ -73,3 +73,7 @@ observableArray.prototype.push = function(key, obj) {
 	}
 }
 
+observableArray.prototype.flush = function() {
+	this.data = {};
+}
+
