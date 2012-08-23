@@ -60,10 +60,15 @@ ticket.prototype.assignee_edit_obj = function(assignee_array) {
 	var div = $('<div id="' + this.id + '_assignee_edit" class="' + this.assignees.data[0] + ' h3_bottom assignee_edit"></div>');
 	var select = $('<select id="' + this.id + '_assignee_edit_select" style="width:99%;"></select>');
 
-	assignee_array.each(function(assignee){
-		var selected = (assignee == this.assignees.data[0]) ? 'selected="selected"' : '';	
+	for (var assignee in assignee_array.data) {
+		var selected = (assignee == this.assignees.data[0]) ? 'selected="selected"' : '';
 		select.append('<option ' + selected + '>' + assignee + '</option>');
-	}, true);
+	}
+
+	//assignee_array.each.apply(this, [ function(assignee){
+	//	var selected = (assignee == this.assignees.data[0]) ? 'selected="selected"' : '';	
+	//	select.append('<option ' + selected + '>' + assignee + '</option>');
+	//}, true ]);
 
 	div.append(select);
 	return div;
