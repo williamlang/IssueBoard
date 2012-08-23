@@ -2,7 +2,7 @@ var alphabet = "abcdefghijklmnopqrstuvwxyz";
 
 function stringToColor(str) {
     while (str.length < 6) {
-	str += str;
+		str += str;
     }
 
     var normalizer = "a".charCodeAt(0);
@@ -22,6 +22,19 @@ function convertJIRAStatus(jiraStatus) {
 
 var ticket_array = new observableArray();
 var assignee_array = new observableArray();
+var priority_array = new observableArray();
+
+// Manually add these for now
+// TODO: move to config file
+priority_array.push("Blocker", 0);
+priority_array.push("Critical", 1);
+priority_array.push("Major", 2);
+priority_array.push("Minor", 3);
+priority_array.push("Trivial", 4);
+
+function ticketPrioritySort(a, b) {
+	return priority_array.data[a.priority] - priority_array.data[b.priority];
+}
 
 assignee_array.onNewItem = function(key){
     $('#legend table').append('<tr class="legend_user legend_' + key + '"><td valign="bottom" id="legend_' + key + '">' + key + ' <div class="user_color ' + key + '">&nbsp;</div></td></tr>');
@@ -38,10 +51,10 @@ assignee_array.onNewItem = function(key){
 };
 
 function assigneeColourize() {
-    for (key in assignee_array.data) {
-	if ($('.' + key))
-	    $('.' + key).css('background-color', stringToColor(key));
-    }
+	assignee_array.each(function(key) {
+		if ($('.' + key))
+	    	$('.' + key).css('background-color', stringToColor(key));
+	});
 }
 
 $(document).ready(function(){
@@ -100,24 +113,21 @@ $(document).ready(function(){
 			var priority = $('#' + ticket_id + '_priority').html();
 			var type = $('#' + ticket_id + '_type').html();
 
-			$.post('update_issue', 
-			{
-				id: ticket_id, 
-				section: section, 
-				title: title, 
-				assignee: assignee, 
-				priority: priority, 
-				type: type 
-			},
-			function(data) {
-				if (data.json_data.errors) {
-					alert(data.json_data.errors);
-				}
-			});
+			ticket_array.data[ticket_id].section = section;
+			ticket_array.data[ticket_id].title = title;
+			ticket_array.data[ticket_id].assignees = new observableArray(assignee.split(','));
+			ticket_array.data[ticket_id].priority = priority;
+			ticket_array.data[ticket_id].type = type;
+			ticket_array.data[ticket_id].update();
 
 			ui.draggable.remove();
 			ui.draggable.removeAttr('style');
-			$(this).append(ui.draggable);
+			if ($(this).find('.ticket_block').first().length > 0) {
+				$(this).find('.ticket_block').first().before(ui.draggable);
+			}
+			else {
+				$(this).append(ui.draggable);
+			}
 
 			// Re-init draggable
 			$('.ticket_block').draggable();
@@ -135,14 +145,15 @@ $(document).ready(function(){
 				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.section, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
 
 				if (ticket_data.assignee.indexOf(',') != -1) {
-					for (var a in ticket_array.assignee) {
-						assignees.push(a);
-					}
+					var ticketAssignees = ticket_data.assignee.split(',');
+
+					for (var a = 0; a < ticketAssignees.length; a++) 
+						assignees.push(ticketAssignees[a]);
 				}
 				else {
 					assignees.push(ticket_data.assignee);
 				}
-				$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
+				//$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
 			}
 			
 			assignees.sort();
@@ -150,7 +161,11 @@ $(document).ready(function(){
 			for (var i = 0; i < assignees.length; i++) {
 				assignee_array.push(assignees[i], 1)
 			}
-			
+
+			ticket_array.sort(ticketPrioritySort);
+			ticket_array.each(function(ticket) {
+				$('#' + ticket.section).append(ticket.toObj());
+			}, true);			
 			assigneeColourize();
 		}
     });
@@ -166,50 +181,55 @@ function queryIssues() {
     var password = $('#password').val();
     var sprint = $('#sprint').val();
 
-    $.post('/curl/get_issues', { username: username, password: password, sprint: sprint, project: 'PY' }, function(data) {
-	    var issues = data.json_data.issues;
+    $.post('/curl/get_issues', {
+			username: username, 
+			password: password, 
+			sprint: sprint, 
+			project: 'PY' 
+		}, function(data) {
+			var issues = data.json_data.issues;
 
-	    for (var i = 0; i < issues.length; i++) {
-			var issue = issues[i];
-		
-			if (issue.fields.assignee.name != "procter") {
-				if (!ticket_array.data[issue.key]) {
-					ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
-					$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
-					assignee_array.push(issue.fields.assignee.name, 1);
-				}
-				else {
-					$('.' + ticket_array.data[issue.key].assignee).removeClass(ticket_array.data[issue.key].assignee).addClass(issue.fields.assignee.name);
-					
-					ticket_array.data[issue.key].title = issue.fields.summary;
-
-					// if the ticket has been returned to the original owner
-					if (ticket_array.data[issue.key].assignees.data.length > 1 && ticket_array.data[issue.key].assignees.data[0] == issue.fields.assignee.name) {
-						// remove the history
-						ticket_array.data[issue.key].assignees = new observableArray();
-						ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
-						$('#' + issue.key + '_assignees').attr('class', ticket_array.data[issue.key].assignees.data[0]);
-						$('#' + issue.key + '_assignees').html(ticket_array.data[issue.key].assignees.data[0]);
+			for (var i = 0; i < issues.length; i++) {
+				var issue = issues[i];
+			
+				if (issue.fields.assignee.name != "procter") {
+					if (!ticket_array.data[issue.key]) {
+						ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
+						$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
+						assignee_array.push(issue.fields.assignee.name, 1);
 					}
 					else {
-						// This is a new assignee for the ticket
-						if (ticket_array.data[issue.key].assignees.data.indexOf(issue.fields.assignee.name) == -1) {
-							ticket_array.data[issue.key].assignees.data.push(issue.fields.assignee.name);
+						$('.' + ticket_array.data[issue.key].assignee).removeClass(ticket_array.data[issue.key].assignee).addClass(issue.fields.assignee.name);
+						
+						ticket_array.data[issue.key].title = issue.fields.summary;
+
+						// if the ticket has been returned to the original owner
+						if (ticket_array.data[issue.key].assignees.data.length > 1 && ticket_array.data[issue.key].assignees.data[0] == issue.fields.assignee.name) {
+							// remove the history
+							ticket_array.data[issue.key].assignees = new observableArray();
+							ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
+							$('#' + issue.key + '_assignees').attr('class', ticket_array.data[issue.key].assignees.data[0]);
+							$('#' + issue.key + '_assignees').html(ticket_array.data[issue.key].assignees.data[0]);
 						}
+						else {
+							// This is a new assignee for the ticket
+							if (ticket_array.data[issue.key].assignees.indexOf(issue.fields.assignee.name) != -1) {
+								ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
+							}
+						}
+
+						ticket_array.data[issue.key].priority = issue.fields.priority.name;
+						ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
 					}
 
-					ticket_array.data[issue.key].priority = issue.fields.priority.name;
-					ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
+					ticket_array.data[issue.key].update();
 				}
-
-				ticket_array.data[issue.key].update();
 			}
-	    }
 
-	    $('#overlay_container').hide();
-	    assigneeColourize();
-	},
-	'json'
+			$('#overlay_container').hide();
+			assigneeColourize();
+		},
+		'json'
     );
 }
 

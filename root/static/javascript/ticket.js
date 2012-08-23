@@ -19,7 +19,8 @@ function ticket(id, section, title, assignee, priority, type) {
 		var assigneeArray = assignee.split(',');
 
 		for (i = 0; i < assigneeArray.length; i++) {
-			this.assignees.push(assigneeArray[i]);
+			if (this.assignees.indexOf(assigneeArray[i]) == -1) // ensure we never get doubles
+				this.assignees.push(assigneeArray[i]);
 		}
 	}
 	else {
@@ -30,67 +31,67 @@ function ticket(id, section, title, assignee, priority, type) {
 	this.priority = priority;
 	// Represents the type
 	this.type = type;
+}
 
-	this.toObj = function() {
-		// Object hasn't been created yet
-		if (!this.obj) {
-			var ticket_block   = $('<div id="' + this.id + '" class="ticket_block"></div>');
-			var ticket_header  = $('<div class="ticket_header"></div>');
-			var ticket_heading = $('<h3 class="' + this.assignees.data[0] + ' h3_top">' + this.id + '</h3>');
-			var ticket_toggle  = $('<span style="float:right;margin-top:-30px;"><input type="button" value="-" id="' + this.id + '_toggle" onclick="Javacript:ticket_toggle(\'' + this.id + '\');" /></span>');
+ticket.prototype.toObj = function() {
+	// Object hasn't been created yet
+	if (!this.obj) {
+		var ticket_block   = $('<div id="' + this.id + '" class="ticket_block"></div>');
+		var ticket_header  = $('<div class="ticket_header"></div>');
+		var ticket_heading = $('<h3 class="' + this.assignees.data[0] + ' h3_top">' + this.id + '</h3>');
+		var ticket_toggle  = $('<span style="float:right;margin-top:-30px;"><input type="button" value="-" id="' + this.id + '_toggle" onclick="Javacript:ticket_toggle(\'' + this.id + '\');" /></span>');
 
-			ticket_header.append(ticket_heading);
-			ticket_header.append(ticket_toggle);
-			ticket_block.append(ticket_header);
-			ticket_block.append('<p id="' + this.id + '_title" class="ticket_title">' + this.title + '</p>');
-			ticket_block.append('<div id="' + this.id + '_assignees" style="display:none;" class="' + this.assignees.data.join(' ') + '">' + this.assignees.data.join(',') + '</div>');
-			ticket_block.append('<p><span id="' + this.id + '_priority">' + this.priority + '</span> <span id="' + this.id + '_type">' + this.type + '</span></p>');
-			ticket_block.append('<h3 id="' + this.id + '_assignee" class="' + this.assignees.data[0] + ' h3_bottom" onclick="Javascript:assignee_edit(\'' + this.id + '\');">' + this.assignees.data[0] + '</h3>');
+		ticket_header.append(ticket_heading);
+		ticket_header.append(ticket_toggle);
+		ticket_block.append(ticket_header);
+		ticket_block.append('<p id="' + this.id + '_title" class="ticket_title">' + this.title + '</p>');
+		ticket_block.append('<div id="' + this.id + '_assignees" style="display:none;" class="' + this.assignees.join(' ') + '">' + this.assignees.join(',') + '</div>');
+		ticket_block.append('<p><span id="' + this.id + '_priority">' + this.priority + '</span> <span id="' + this.id + '_type">' + this.type + '</span></p>');
+		ticket_block.append('<h3 id="' + this.id + '_assignee" class="' + this.assignees.data[0] + ' h3_bottom" onclick="Javascript:assignee_edit(\'' + this.id + '\');">' + this.assignees.data[0] + '</h3>');
 
-			ticket_block.draggable();
-			this.obj = ticket_block;
-		}
-
-		return this.obj;
+		ticket_block.draggable();
+		this.obj = ticket_block;
 	}
 
-	this.assignee_edit_obj = function(assignee_array) {
-		var div = $('<div id="' + this.id + '_assignee_edit" class="' + this.assignees.data[0] + ' h3_bottom assignee_edit"></div>');
-		var select = $('<select id="' + this.id + '_assignee_edit_select" style="width:99%;"></select>');
-	
-		for (var assignee in assignee_array.data) {
-			var selected = (assignee == this.assignees.data[0]) ? 'selected="selected"' : '';	
-			select.append('<option ' + selected + '>' + assignee + '</option>');
-		}
+	return this.obj;
+}
 
-		div.append(select);
-		return div;
-	}
+ticket.prototype.assignee_edit_obj = function(assignee_array) {
+	var div = $('<div id="' + this.id + '_assignee_edit" class="' + this.assignees.data[0] + ' h3_bottom assignee_edit"></div>');
+	var select = $('<select id="' + this.id + '_assignee_edit_select" style="width:99%;"></select>');
 
-	this.update = function() {
-		$.ajax({
-			type: 'POST',
-			url: 'update_issue',
-			data: {
-				id: this.id, 
-				section: this.section, 
-				title: this.title, 
-				assignee: this.assignees.data.join(','),
-				priority: this.priority,
-				type: this.type
-			},
-			context: this, // ticket object
-			success: function(data) {
-				if (data.json_data.errors) {
-					alert(data.json_data.errors);
-				}
-				else {
-					// success
-					$('#' + this.id + '_assignees').attr('class', this.assignees.data.join(' '));
-					$('#' + this.id + '_assignees').html(this.assignees.data.join(','));
-				}
+	assignee_array.each(function(assignee){
+		var selected = (assignee == this.assignees.data[0]) ? 'selected="selected"' : '';	
+		select.append('<option ' + selected + '>' + assignee + '</option>');
+	}, true);
+
+	div.append(select);
+	return div;
+}
+
+ticket.prototype.update = function() {
+	$.ajax({
+		type: 'POST',
+		url: 'update_issue',
+		data: {
+			id: this.id, 
+			section: this.section, 
+			title: this.title, 
+			assignee: this.assignees.join(','),
+			priority: this.priority,
+			type: this.type
+		},
+		context: this, // ticket object
+		success: function(data) {
+			if (data.json_data.errors) {
+				alert(data.json_data.errors);
 			}
-		});
-	}
+			else {
+				// success
+				$('#' + this.id + '_assignees').attr('class', this.assignees.join(' '));
+				$('#' + this.id + '_assignees').html(this.assignees.join(','));
+			}
+		}
+	});
 }
 
