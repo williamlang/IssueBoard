@@ -192,38 +192,36 @@ function queryIssues() {
 			for (var i = 0; i < issues.length; i++) {
 				var issue = issues[i];
 			
-				if (issue.fields.assignee.name != "procter") {
-					if (!ticket_array.data[issue.key]) {
-						ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
-						$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
-						assignee_array.push(issue.fields.assignee.name, 1);
+				if (!ticket_array.data[issue.key]) {
+					ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
+					$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
+					assignee_array.push(issue.fields.assignee.name, 1);
+				}
+				else {
+					$('.' + ticket_array.data[issue.key].assignee).removeClass(ticket_array.data[issue.key].assignee).addClass(issue.fields.assignee.name);
+					
+					ticket_array.data[issue.key].title = issue.fields.summary;
+
+					// if the ticket has been returned to the original owner
+					if (ticket_array.data[issue.key].assignees.size() > 1 && ticket_array.data[issue.key].assignees.data[0] == issue.fields.assignee.name) {
+						// remove the history
+						ticket_array.data[issue.key].assignees = new observableArray();
+						ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
+						$('#' + issue.key + '_assignees').attr('class', ticket_array.data[issue.key].assignees.data[0]);
+						$('#' + issue.key + '_assignees').html(ticket_array.data[issue.key].assignees.data[0]);
 					}
 					else {
-						$('.' + ticket_array.data[issue.key].assignee).removeClass(ticket_array.data[issue.key].assignee).addClass(issue.fields.assignee.name);
-						
-						ticket_array.data[issue.key].title = issue.fields.summary;
-
-						// if the ticket has been returned to the original owner
-						if (ticket_array.data[issue.key].assignees.data.length > 1 && ticket_array.data[issue.key].assignees.data[0] == issue.fields.assignee.name) {
-							// remove the history
-							ticket_array.data[issue.key].assignees = new observableArray();
+						// This is a new assignee for the ticket
+						if (ticket_array.data[issue.key].assignees.indexOf(issue.fields.assignee.name) == -1) {
 							ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
-							$('#' + issue.key + '_assignees').attr('class', ticket_array.data[issue.key].assignees.data[0]);
-							$('#' + issue.key + '_assignees').html(ticket_array.data[issue.key].assignees.data[0]);
 						}
-						else {
-							// This is a new assignee for the ticket
-							if (ticket_array.data[issue.key].assignees.indexOf(issue.fields.assignee.name) != -1) {
-								ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
-							}
-						}
-
-						ticket_array.data[issue.key].priority = issue.fields.priority.name;
-						ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
 					}
 
-					ticket_array.data[issue.key].update();
+					ticket_array.data[issue.key].priority = issue.fields.priority.name;
+					ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
 				}
+
+				ticket_array.data[issue.key].update();
 			}
 
 			$('#overlay_container').hide();
