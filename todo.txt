@@ -13,10 +13,13 @@ separate two rows or sections (blocked/rework/review/sql-review) ?
 filter by release target
 filter by team/group
 click on assignee of ticket and change (DONE)
+add project selector
+change sprint text box to drop down
 
 BUGS
 
 Ticket needs to get updated when it changes (DONE)
 When updating tickets already on the board some tickets have incorrect coloring (DONE)
 sometimes when updating, the state of the ticket changes and is being updated on the page. the state should not be changed by updates (DONE)
+first select a user in the legend, minimize/maximize then show all. some are minimized/maximized and some are not. behaviour is expected but should be fixed
 
