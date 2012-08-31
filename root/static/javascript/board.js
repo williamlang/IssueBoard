@@ -25,7 +25,7 @@ function releaseClass(releaseVersion) {
 		return "";
 	}
 
-	return releaseVersion.replace(new RegExp("\\.", "g"), "_");
+	return releaseVersion.replace(new RegExp("\\.|\\s", "g"), "_");
 }
 
 var ticket_array = new observableArray();
@@ -136,6 +136,8 @@ $(document).ready(function(){
 			var priority = $('#' + ticket_id + '_priority').html();
 			var type = $('#' + ticket_id + '_type').html();
 			var release = $('#' + ticket_id + '_release').html();
+			if (release == "Not scheduled for release")
+				release = "";
 
 			ticket_array.data[ticket_id].section = section;
 			ticket_array.data[ticket_id].title = title;
@@ -251,7 +253,7 @@ function queryIssues() {
 					ticket_array.data[issue.key].type = issue.fields.issuetype.name;
 					ticket_array.data[issue.key].release = issue.fields.customfield_10191;
 
-					if (!releases_array.data[ticket_array.data[issue.key].release] && ticket_array.data[issue.key].release.length > 0) {
+					if (ticket_array.data[issue.key].release && !releases_array.data[ticket_array.data[issue.key].release] && ticket_array.data[issue.key].release.length > 0) {
 						releases_array.push(ticket_array.data[issue.key].release, 1);
 					}
 				}

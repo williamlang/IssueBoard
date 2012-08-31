@@ -49,7 +49,7 @@ ticket.prototype.toObj = function() {
 		ticket_block.append('<p id="' + this.id + '_title" class="ticket_title">' + this.title + '</p>'); // title
 		ticket_block.append('<div id="' + this.id + '_assignees" style="display:none;" class="' + this.assignees.join(' ') + '">' + this.assignees.join(',') + '</div>'); // assignees
 		ticket_block.append('<p><span id="' + this.id + '_priority">' + this.priority + '</span> <span id="' + this.id + '_type">' + this.type + '</span></p>'); // type
-		var release = (this.release) ? this.release : "Not schedule for release";
+		var release = (this.release) ? this.release : "Not scheduled for release";
 		ticket_block.append('<p><span id="' + this.id + '_release" class="' + releaseClass(this.release) + '" onclick="Javascript:release_edit(\'' + this.id + '\');">' + release + '</span></p>'); // release		
 		ticket_block.append('<h3 id="' + this.id + '_assignee" class="' + this.assignees.data[0] + ' h3_bottom" onclick="Javascript:assignee_edit(\'' + this.id + '\');">' + this.assignees.data[0] + '</h3>');
 
@@ -83,6 +83,7 @@ ticket.prototype.release_edit_obj = function() {
 	var select = $('#release_version').clone();
 	select.attr('id', this.id + '_release_edit_select');
 	select.attr('style', 'width:90%;');
+	select.val(this.release);
 	div.append(select);
 	return div;
 }
