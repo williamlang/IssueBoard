@@ -53,7 +53,8 @@ sub get_issues :Local {
 					section => $lines[2],
 					assignee => $lines[3],
 					priority => $lines[4],
-					type => $lines[5]
+					type => $lines[5],
+					release => $lines[6] || ""
 				} if $lines[0] && $lines[1] && $lines[2] && $lines[3] && $lines[4] && $lines[5];
 	    	}
 		}
@@ -76,6 +77,7 @@ sub update_issue :Local {
     my %ticket = ();
     my $file_contents = "";
 
+	# mandatory fields
     for (qw(id title section assignee priority type)) {
 		if ($c->req->body_params->{$_}) {
 		    $ticket{"$_"} = $c->req->body_params->{$_};
@@ -87,13 +89,23 @@ sub update_issue :Local {
 		}
     }
 
+	# optional fields
+	if ($c->req->body_params->{release}) {
+		$ticket{"release"} = $c->req->body_params->{release};
+		$file_contents .= $ticket{"release"} . "\n";
+	}
+	else {
+		$ticket{"release"} = "";
+		$file_contents .= "" . "\n";
+	}
+
     if ($error) {
         $c->stash->{json_data} = {
 			'errors' => \@messages 
 		};
     } 
     else {
-	# open file for read -- we don't care what's in there, so truncate and overwrite
+		# open file for read -- we don't care what's in there, so truncate and overwrite
         if (open FILE, ">", $c->config->{home} . "/root/tickets/$ticket{id}.txt") {
 			print FILE $file_contents;
 			close FILE;

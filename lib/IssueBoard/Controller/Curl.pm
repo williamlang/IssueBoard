@@ -39,7 +39,10 @@ sub get_issues :Local {
     my $pageCount = 1;
     my $perPage = 50;
 
-    my $url = "https://pythian.jira.com/rest/api/2/search?jql=project='$project'+AND+fixVersion='Sprint+$fixVersion'&fields=key,summary,assignee,status,issuetype,priority";
+	my @fields = ( 'key', 'summary', 'assignee', 'status', 'issuetype', 'priority' );
+	push @fields, $c->config->{release_field};		
+
+    my $url = "https://pythian.jira.com/rest/api/2/search?jql=project='$project'+AND+fixVersion='Sprint+$fixVersion'&fields=" . join(",", @fields);
     my $curl = WWW::Curl::Easy->new;
     my $json_response;
 

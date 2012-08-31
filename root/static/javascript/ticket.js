@@ -4,7 +4,7 @@
 	Represents a JIRA ticket	
 */
 
-function ticket(id, section, title, assignee, priority, type) {
+function ticket(id, section, title, assignee, priority, type, release) {
 	// The ticket id ex: PY-1234
 	this.id = id;
 	// The ticket status / section
@@ -31,12 +31,14 @@ function ticket(id, section, title, assignee, priority, type) {
 	this.priority = priority;
 	// Represents the type
 	this.type = type;
+	// Represents the release target
+	this.release = (release == "null") ? null : release;
 }
 
 ticket.prototype.toObj = function() {
 	// Object hasn't been created yet
 	if (!this.obj) {
-		var ticket_block   = $('<div id="' + this.id + '" class="ticket_block"></div>');
+		var ticket_block   = $('<div id="' + this.id + '" class="ticket_block ' + releaseClass(this.release) + '"></div>');
 		var ticket_header  = $('<div class="ticket_header"></div>');
 		var ticket_heading = $('<h3 class="' + this.assignees.data[0] + ' h3_top">' + this.id + '</h3>');
 		var ticket_toggle  = $('<span style="float:right;margin-top:-30px;"><input type="button" value="-" id="' + this.id + '_toggle" onclick="Javacript:ticket_toggle(\'' + this.id + '\');" /></span>');
@@ -44,9 +46,11 @@ ticket.prototype.toObj = function() {
 		ticket_header.append(ticket_heading);
 		ticket_header.append(ticket_toggle);
 		ticket_block.append(ticket_header);
-		ticket_block.append('<p id="' + this.id + '_title" class="ticket_title">' + this.title + '</p>');
-		ticket_block.append('<div id="' + this.id + '_assignees" style="display:none;" class="' + this.assignees.join(' ') + '">' + this.assignees.join(',') + '</div>');
-		ticket_block.append('<p><span id="' + this.id + '_priority">' + this.priority + '</span> <span id="' + this.id + '_type">' + this.type + '</span></p>');
+		ticket_block.append('<p id="' + this.id + '_title" class="ticket_title">' + this.title + '</p>'); // title
+		ticket_block.append('<div id="' + this.id + '_assignees" style="display:none;" class="' + this.assignees.join(' ') + '">' + this.assignees.join(',') + '</div>'); // assignees
+		ticket_block.append('<p><span id="' + this.id + '_priority">' + this.priority + '</span> <span id="' + this.id + '_type">' + this.type + '</span></p>'); // type
+		var release = (this.release) ? this.release : "Not schedule for release";
+		ticket_block.append('<p><span id="' + this.id + '_release" class="' + releaseClass(this.release) + '" onclick="Javascript:release_edit(\'' + this.id + '\');">' + release + '</span></p>'); // release		
 		ticket_block.append('<h3 id="' + this.id + '_assignee" class="' + this.assignees.data[0] + ' h3_bottom" onclick="Javascript:assignee_edit(\'' + this.id + '\');">' + this.assignees.data[0] + '</h3>');
 
 		ticket_block.draggable();
@@ -74,6 +78,15 @@ ticket.prototype.assignee_edit_obj = function(assignee_array) {
 	return div;
 }
 
+ticket.prototype.release_edit_obj = function() {
+	var div = $('<div id="' + this.id + '_release_edit" class="release_edit"></div>');
+	var select = $('#release_version').clone();
+	select.attr('id', this.id + '_release_edit_select');
+	select.attr('style', 'width:90%;');
+	div.append(select);
+	return div;
+}
+
 ticket.prototype.update = function() {
 	$.ajax({
 		type: 'POST',
@@ -84,7 +97,8 @@ ticket.prototype.update = function() {
 			title: this.title, 
 			assignee: this.assignees.join(','),
 			priority: this.priority,
-			type: this.type
+			type: this.type,
+			release: this.release
 		},
 		context: this, // ticket object
 		success: function(data) {

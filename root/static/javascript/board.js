@@ -20,9 +20,18 @@ function convertJIRAStatus(jiraStatus) {
     return jiraStatus.toLowerCase().replace(/\s/, "_");
 }
 
+function releaseClass(releaseVersion) {
+	if (!releaseVersion) {
+		return "";
+	}
+
+	return releaseVersion.replace(new RegExp("\\.", "g"), "_");
+}
+
 var ticket_array = new observableArray();
 var assignee_array = new observableArray();
 var priority_array = new observableArray();
+var releases_array = new observableArray();
 
 // Manually add these for now
 // TODO: move to config file
@@ -50,6 +59,10 @@ assignee_array.onNewItem = function(key){
     });
 };
 
+releases_array.onNewItem = function(key) {
+	$('#release_version').append('<option value="' + key + '">' + key + '</option>');
+}
+
 function assigneeColourize() {
 	assignee_array.each(function(key) {
 		if ($('.' + key))
@@ -58,6 +71,16 @@ function assigneeColourize() {
 }
 
 $(document).ready(function(){
+
+	$('#release_version').change(function(){
+		if ($(this).val().length > 0) {
+			$('.ticket_block').hide();
+			$('.' + releaseClass($(this).val())).show();
+		}
+		else {
+			$('.ticket_block').show();
+		}
+	});
 
     $('#legend_all').click(function(){
 		$('.ticket_block').show();
@@ -112,12 +135,14 @@ $(document).ready(function(){
 			var assignee = $('#' + ticket_id + '_assignees').html();
 			var priority = $('#' + ticket_id + '_priority').html();
 			var type = $('#' + ticket_id + '_type').html();
+			var release = $('#' + ticket_id + '_release').html();
 
 			ticket_array.data[ticket_id].section = section;
 			ticket_array.data[ticket_id].title = title;
 			ticket_array.data[ticket_id].assignees = new observableArray(assignee.split(','));
 			ticket_array.data[ticket_id].priority = priority;
 			ticket_array.data[ticket_id].type = type;
+			ticket_array.data[ticket_id].release = release;
 			ticket_array.data[ticket_id].update();
 
 			ui.draggable.remove();
@@ -142,7 +167,7 @@ $(document).ready(function(){
 			var assignees = new Array();
 			for (var i = 0; i < data.json_data.tickets.length; i++) {
 				var ticket_data = data.json_data.tickets[i];
-				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.section, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type));
+				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.section, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type, ticket_data.release));
 
 				if (ticket_data.assignee.indexOf(',') != -1) {
 					var ticketAssignees = ticket_data.assignee.split(',');
@@ -153,6 +178,11 @@ $(document).ready(function(){
 				else {
 					assignees.push(ticket_data.assignee);
 				}
+
+				if (ticket_data.release && ticket_data.release != "null" && !releases_array.data[ticket_data.release]) {
+					releases_array.push(ticket_data.release, 1);
+				}
+
 				//$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
 			}
 			
@@ -193,7 +223,7 @@ function queryIssues() {
 				var issue = issues[i];
 			
 				if (!ticket_array.data[issue.key]) {
-					ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name));
+					ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name, issue.fields.customfield_10191));
 					$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
 					assignee_array.push(issue.fields.assignee.name, 1);
 				}
@@ -218,7 +248,12 @@ function queryIssues() {
 					}
 
 					ticket_array.data[issue.key].priority = issue.fields.priority.name;
-					ticket_array.data[issue.key].type = issue.fields.issuetype.name;	
+					ticket_array.data[issue.key].type = issue.fields.issuetype.name;
+					ticket_array.data[issue.key].release = issue.fields.customfield_10191;
+
+					if (!releases_array.data[ticket_array.data[issue.key].release] && ticket_array.data[issue.key].release.length > 0) {
+						releases_array.push(ticket_array.data[issue.key].release, 1);
+					}
 				}
 
 				ticket_array.data[issue.key].update();
@@ -272,6 +307,32 @@ function assignee_edit(ticket_id) {
 	}
 	else {
 		alert('Ticket does not exist. Refresh the page.');
+	}
+}
+
+function release_edit(ticket_id) {
+	var ticket_obj = ticket_array.data[ticket_id];
+
+	if (ticket_obj) {
+		var div = $('#' + ticket_id + '_release');
+		div.replaceWith(ticket_obj.release_edit_obj());
+		$('#' + ticket_id + '_release_edit_select').focus();
+
+		$('#' + ticket_id + '_release_edit_select').change(function() {
+			var release = $(this).val();
+			ticket_array.data[ticket_id].release = release;
+			ticket_array.data[ticket_id].obj = null;
+			$('#' + ticket_id).replaceWith(ticket_array.data[ticket_id].toObj());
+			assigneeColourize();
+			ticket_array.data[ticket_id].update();
+		});
+
+		$('#' + ticket_id + '_release_edit_select').blur(function(){
+			$('#' + ticket_id + '_release_edit').replaceWith(div);
+		});
+	}
+	else {
+		alert('Ticket does not exist. Refresh the page');
 	}
 }
 
