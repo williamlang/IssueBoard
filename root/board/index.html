@@ -43,19 +43,21 @@
     </table>
 </div>
 
-<table id="issueboard">	
-    <tr>
-		<th>Open</th>
-		<th>In Progress</th>
-		<th>Review</th>
-		<th>SQL Review</th>
-		<th>Merge</th>
-		<th>Test</th>
-		<th>System Test</th>
-		<th>Rework</th>
-		<th>Blocked</th>
-		<th>Done</th>
-    </tr>
+<table id="issueboard">
+	<thead>	
+		<tr>
+			<th>Open</th>
+			<th>In Progress</th>
+			<th>Review</th>
+			<th>SQL Review</th>
+			<th>Merge</th>
+			<th>Test</th>
+			<th>System Test</th>
+			<th>Rework</th>
+			<th>Blocked</th>
+			<th>Done</th>
+		</tr>
+	</thead>
     <tr>
 		<td id="open" class="border_right issue_section"></td>
 		<td id="in_progress" class="border_right issue_section"></td>
@@ -75,3 +77,8 @@
     <div id="loading">Loading...</div>
 </div>
 
+<script>
+	$(document).ready(function() {
+		$('#issueboard').stickyTableHeaders();
+	});
+</script>
