@@ -49,7 +49,7 @@ $(function(){
                 base.$clonedHeader.addClass('tableFloatingHeader');
                 base.$clonedHeader.css({
                     'position': 'fixed',
-                    'top': 0,
+                    'top': "-2px",
                     'z-index': 101, // #18: opacity bug
                     'display': 'none'
                 });
@@ -93,7 +93,7 @@ $(function(){
                     }
 
                     base.$clonedHeader.css({
-                        'top': newTopOffset,
+                        'top': newTopOffset - 2,
                         'margin-top': 0,
                         'left': newLeft,
                         'display': 'block'
