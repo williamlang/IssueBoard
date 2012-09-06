@@ -184,8 +184,6 @@ $(document).ready(function(){
 				if (ticket_data.release && ticket_data.release != "null" && !releases_array.data[ticket_data.release]) {
 					releases_array.push(ticket_data.release, 1);
 				}
-
-				//$('#' + ticket_data.section).append(ticket_array.data[ticket_data.id].toObj()); 
 			}
 			
 			assignees.sort();
@@ -218,7 +216,8 @@ function queryIssues() {
 			password: password, 
 			sprint: sprint, 
 			project: 'PY' 
-		}, function(data) {
+		},
+		function(data) {
 			var issues = data.json_data.issues;
 
 			for (var i = 0; i < issues.length; i++) {
@@ -247,6 +246,12 @@ function queryIssues() {
 						if (ticket_array.data[issue.key].assignees.indexOf(issue.fields.assignee.name) == -1) {
 							ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
 						}
+					}
+
+					if (ticket_array.data[issue.key].section == "test" && issue.fields.status.name == "System Test") {
+						ticket_array.data[issue.key].section = convertJIRAStatus(issue.fields.status.name);
+						$('#' + issue.key).remove();
+						$('#system_test').append(ticket_array.data[issue.key].toObj());
 					}
 
 					ticket_array.data[issue.key].priority = issue.fields.priority.name;
