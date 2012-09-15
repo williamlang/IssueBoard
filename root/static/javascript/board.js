@@ -1,6 +1,9 @@
 var alphabet = "abcdefghijklmnopqrstuvwxyz";
 
 function stringToColor(str) {
+    if (!str || str.length == 0)
+	return '';
+
     while (str.length < 6) {
 		str += str;
     }

@@ -1,0 +1,41 @@
+<h1>OOPS: Original Oncall Pythian Schedule</h1>
+
+<h2>Developers</h2>
+<input type="button" id="add-dev" value="Add Dev" />
+<table id="scheduler-users">
+    <tr>
+	<th>User</th>
+	<th>Bad Days</th>
+	<th>Colour</th>
+    </tr>
+</table>
+
+Start Date: <input type="text" id="schedule-start" /> <input type="button" value="Generate Schedule" id="generate-schedule" />
+
+<table id="schedule"></table>
+
+<div id="add-dev-container" style="display:none;">
+    <div id="add-dev-dialog">&nbsp;</div>
+    <div id="add-dev-form">
+	<h3>Add Dev</h3>
+	<table>
+	    <tr>
+		<td>Name</td>
+		<td><input type="text" id="add-dev-name" /></td>
+	    </tr>
+	    <tr>
+		<td valign="top">Bad Days</td>
+		<td>
+		    <input type="checkbox" name="add-dev-bad-days" value="monday" /> Monday <br />
+		    <input type="checkbox" name="add-dev-bad-days" value="tuesday" /> Tuesday <br />
+		    <input type="checkbox" name="add-dev-bad-days" value="wednesday" /> Wednesday <br />
+		    <input type="checkbox" name="add-dev-bad-days" value="thursday" /> Thursday
+		</td>	
+	    </tr>
+	    <tr>
+		<td></td>
+		<td><input type="button" id="add-dev-submit" value="Add Dev" /></td>
+	    </tr>
+	</table>
+    </div>
+</div>
