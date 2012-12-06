@@ -225,6 +225,12 @@ function queryIssues() {
 
 			for (var i = 0; i < issues.length; i++) {
 				var issue = issues[i];
+
+                if (!issue.fields.assignee) {
+                    issue.fields.assignee = {
+                        name: 'unassigned'
+                    };
+                }
 			
 				if (!ticket_array.data[issue.key]) {
 					ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name, issue.fields.customfield_10191));
