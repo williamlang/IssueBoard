@@ -164,6 +164,19 @@ $(document).ready(function(){
 		}
     });
 
+    $.get('/curl/get_fix_versions', function(data) {
+        if (data.json_data.errors) {
+            alert(data.json_data.errors);
+        }
+        else {
+            var fix_versions = data.json_data.fix_versions;
+
+            for (var i = fix_versions.length - 1; i >= 0; i--) {
+                $('#fix_version').append('<option value="' + fix_versions[i].name + '">' + fix_versions[i].name + '</option>');
+            }
+        }
+    });
+
     $.get('get_issues', function(data) {
 		if (data.json_data.errors) {
 			alert(data.json_data.errors);
@@ -210,15 +223,8 @@ function queryIssues() {
     */
     $('#overlay_container').show();
 
-    var username = $('#username').val();
-    var password = $('#password').val();
-    var sprint = $('#sprint').val();
-
     $.post('/curl/get_issues', {
-			username: username, 
-			password: password, 
-			sprint: sprint, 
-			project: 'PY' 
+			fix_version: $('#fix_version').val(),
 		},
 		function(data) {
 			var issues = data.json_data.issues;

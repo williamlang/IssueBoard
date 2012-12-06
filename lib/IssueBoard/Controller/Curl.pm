@@ -28,13 +28,41 @@ sub index :Path :Args(0) {
     my ( $self, $c ) = @_;   
 }
 
-sub get_issues :Local {
-    my ($self, $c ) = @_;
+sub get_fix_versions: Local {
+	my ( $self, $c ) = @_;
 
-    my $username = $c->req->param('username');
-    my $password = $c->req->param('password');
-	my $project = $c->req->param('project');
-    my $fixVersion = $c->req->param('sprint');
+	my $username = $c->config->{username};
+	my $password = $c->config->{password};
+	my $project  = $c->config->{project};	
+	my $url = "https://pythian.jira.com/rest/api/2/project/" . $project . "/versions";
+
+	my $curl = WWW::Curl::Easy->new;
+	$curl->setopt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	$curl->setopt(CURLOPT_USERPWD, "$username:$password");
+	$curl->setopt(CURLOPT_URL, $url);
+
+	my $response_body = '';
+	open (my $fileb, ">", \$response_body);
+	$curl->setopt(CURLOPT_WRITEDATA, $fileb);
+	my $return_code = $curl->perform;
+	close($fileb);
+
+	my $json = JSON->new;
+	my $json_text = $json->decode($response_body);
+	$c->stash->{json_data} = {
+        fix_versions => $json_text
+    };
+	$c->forward('View::JSON');
+}
+
+sub get_issues :Local {
+    my ( $self, $c ) = @_;
+
+    my $username = $c->config->{username};
+    my $password = $c->config->{password};
+    my $project  = $c->config->{project};
+    my $fixVersion = $c->req->param('fix_version');
+    $fixVersion =~ s/\s/\+/g;
     my $page = 0;
     my $pageCount = 1;
     my $perPage = 50;
@@ -42,7 +70,7 @@ sub get_issues :Local {
 	my @fields = ( 'key', 'summary', 'assignee', 'status', 'issuetype', 'priority' );
 	push @fields, $c->config->{release_field};		
 
-    my $url = "https://pythian.jira.com/rest/api/2/search?jql=project='$project'+AND+fixVersion='Sprint+$fixVersion'&fields=" . join(",", @fields);
+    my $url = "https://pythian.jira.com/rest/api/2/search?jql=project='$project'+AND+fixVersion='$fixVersion'&fields=" . join(",", @fields);
     my $curl = WWW::Curl::Easy->new;
     my $json_response;
 
