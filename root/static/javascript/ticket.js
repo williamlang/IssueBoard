@@ -38,17 +38,24 @@ function ticket(id, section, title, assignee, priority, type, release) {
 ticket.prototype.toObj = function() {
 	// Object hasn't been created yet
 	if (!this.obj) {
-		var ticket_block   = $('<div id="' + this.id + '" class="ticket_block ' + releaseClass(this.release) + '"></div>');
-		var ticket_header  = $('<div class="ticket_header"></div>');
-		var ticket_heading = $('<h3 class="' + this.assignees.data[0] + ' h3_top">' + this.id + '</h3>');
-		var ticket_toggle  = $('<span style="float:right;margin-top:-30px;"><input type="button" value="-" id="' + this.id + '_toggle" onclick="Javacript:ticket_toggle(\'' + this.id + '\');" /></span>');
+		var ticket_block    = $('<div id="' + this.id + '" class="ticket_block ' + releaseClass(this.release) + '"></div>');
+		var ticket_header   = $('<div class="ticket_header"></div>');
+		var ticket_heading  = $('<h3 class="' + this.assignees.data[0] + ' h3_top">' + this.id + '</h3>');
+		var ticket_toggle   = $('<span style="float:right;margin-top:-30px;"><input type="button" value="-" id="' + this.id + '_toggle" onclick="Javacript:ticket_toggle(\'' + this.id + '\');" /></span>');
+        var ticket_info     = $('<div style="width:100%; float:left; margin-bottom: 5px;"></div>');
+        var ticket_priority = $('<span id="' + this.id + '_priority" style="float:left;"><img src="https://pythian.jira.com/images/icons/priority_' + this.priority.toLowerCase() + '.gif" alt="' + this.priority + '" /></span>');
+        var ticket_type     = $('<span id="' + this.id + '_type" style="float:left; margin-top: -3px; margin-left: 3px;">' + this.type + '</span>');
 
 		ticket_header.append(ticket_heading);
 		ticket_header.append(ticket_toggle);
 		ticket_block.append(ticket_header);
 		ticket_block.append('<p id="' + this.id + '_title" class="ticket_title">' + this.title + '</p>'); // title
 		ticket_block.append('<div id="' + this.id + '_assignees" style="display:none;" class="' + this.assignees.join(' ') + '">' + this.assignees.join(',') + '</div>'); // assignees
-		ticket_block.append('<p><span id="' + this.id + '_priority">' + this.priority + '</span> <span id="' + this.id + '_type">' + this.type + '</span></p>'); // type
+        
+        ticket_info.append(ticket_priority);
+        ticket_info.append(ticket_type);
+        ticket_block.append(ticket_info);
+
 		var release = (this.release) ? this.release : "Not scheduled for release";
 		ticket_block.append('<p><span id="' + this.id + '_release" class="' + releaseClass(this.release) + '" onclick="Javascript:release_edit(\'' + this.id + '\');">' + release + '</span></p>'); // release		
 		ticket_block.append('<h3 id="' + this.id + '_assignee" class="' + this.assignees.data[0] + ' h3_bottom" onclick="Javascript:assignee_edit(\'' + this.id + '\');">' + this.assignees.data[0] + '</h3>');
