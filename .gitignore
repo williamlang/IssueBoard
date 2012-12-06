@@ -1,3 +1,7 @@
 /root/tickets/
 *.swp
 /blib/
+MYMETA.json
+MYMETA.yml
+/inc/
+Makefile
