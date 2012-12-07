@@ -43,7 +43,7 @@
 
 <table id="issueboard">
 	<thead>	
-		<tr>
+		<tr id="issueboard_header_row">
 			<th>Open</th>
 			<th>In Progress</th>
 			<th>Rework</th>
@@ -78,5 +78,9 @@
 <script>
 	$(document).ready(function() {
 		$('#issueboard').stickyTableHeaders();
+
+        $('#issueboard_header_row').click(function() {
+            $(document).scrollTop( $('#issueboard').offset().top );
+        });
 	});
 </script>
