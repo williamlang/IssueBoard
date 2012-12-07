@@ -43,7 +43,7 @@ ticket.prototype.toObj = function() {
 		var ticket_heading  = $('<h3 class="' + this.assignees.data[0] + ' h3_top">' + this.id + '</h3>');
 		var ticket_toggle   = $('<span style="float:right;margin-top:-30px;"><input type="button" value="-" id="' + this.id + '_toggle" onclick="Javacript:ticket_toggle(\'' + this.id + '\');" /></span>');
         var ticket_info     = $('<div style="width:100%; float:left; margin-bottom: 5px;"></div>');
-        var ticket_priority = $('<span id="' + this.id + '_priority" style="float:left;"><img src="https://pythian.jira.com/images/icons/priority_' + this.priority.toLowerCase() + '.gif" alt="' + this.priority + '" /></span>');
+        var ticket_priority = $('<span id="' + this.id + '_priority" style="display:none;">' + this.priority + '</span><span style="float:left;"><img src="https://pythian.jira.com/images/icons/priority_' + this.priority.toLowerCase() + '.gif" alt="' + this.priority + '" /></span>');
         var ticket_type     = $('<span id="' + this.id + '_type" style="float:left; margin-top: -3px; margin-left: 3px;">' + this.type + '</span>');
 
 		ticket_header.append(ticket_heading);
