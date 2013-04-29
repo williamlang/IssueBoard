@@ -185,6 +185,11 @@ $(document).ready(function(){
 			var assignees = new Array();
 			for (var i = 0; i < data.json_data.tickets.length; i++) {
 				var ticket_data = data.json_data.tickets[i];
+
+                if (ticket_data.section == "SQL Review") {
+                    ticket_data.section = "Review";
+                }
+
 				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.section, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type, ticket_data.release));
 
 				if (ticket_data.assignee.indexOf(',') != -1) {
@@ -268,6 +273,11 @@ function queryIssues() {
 						$('#' + issue.key).remove();
 						$('#system_test').append(ticket_array.data[issue.key].toObj());
 					}
+                    else if (ticket_array[issue.key].section == "sql_review" || issue.fields.status.name == "SQL Review") {
+                        ticket_array.data[issue.key].section = "review";
+                        $('#' + issue.key).remove();
+                        $('#review').append(ticket_array.data[issue.key].toObj());
+                    }
 
 					ticket_array.data[issue.key].priority = issue.fields.priority.name;
 					ticket_array.data[issue.key].type = issue.fields.issuetype.name;
