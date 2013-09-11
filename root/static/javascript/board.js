@@ -273,7 +273,7 @@ function queryIssues() {
 						$('#' + issue.key).remove();
 						$('#system_test').append(ticket_array.data[issue.key].toObj());
 					}
-                    else if (ticket_array[issue.key].section == "sql_review" || issue.fields.status.name == "SQL Review") {
+                    else if (ticket_array.data[issue.key].section == "sql_review" || issue.fields.status.name == "SQL Review") {
                         ticket_array.data[issue.key].section = "review";
                         $('#' + issue.key).remove();
                         $('#review').append(ticket_array.data[issue.key].toObj());
