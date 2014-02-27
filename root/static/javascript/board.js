@@ -213,18 +213,18 @@ function queryIssues() {
                     };
                 }
 
-                var ticket = tickets.findWhere({ key: issue.key });
+                var ticket = tickets.findWhere({ id: issue.key });
 
                 var assignee = new Assignee( issue.fields.assignee );
                 assignees.add( assignee );
 
-                var priority = new Priority({ name: issue.fields.issuetype.name });
+                var priority = new Priority({ name: issue.fields.priority.name });
                 priorities.add( priority );
 
                 var release = new Release({ name: issue.fields.customfield_10191 || "TBD" });
                 releases.add( release );
 
-                var type = new Type({ name: issue.fields.issuetype });
+                var type = new Type( issue.fields.issuetype );
                 types.add( type );
 
                 if ( ticket ) {
@@ -238,9 +238,7 @@ function queryIssues() {
                     });
                 }
                 else {
-                    ticket = new Ticket();
-
-                    ticket.set({
+                    ticket = new Ticket({
                         id: issue.key,
                         section: convertJIRAStatus(issue.fields.status.name),
                         title: issue.fields.summary,
@@ -249,6 +247,9 @@ function queryIssues() {
                         type: type.toJSON(),
                         release: release.toJSON()
                     });
+
+                    tickets.add( ticket );
+                    ticket.update();
                 }
 
                 // If the ticket was in testing, but is now in System Testing do the move automatically
