@@ -1,0 +1,7 @@
+<script id="assignee-edit-template" type="x-template">
+    <select style="width:99%;">
+    {{ #assignees }}
+        <option value="{{ name }}">{{ name }}</option>
+    {{ /assignees }}
+    </select>
+</script>

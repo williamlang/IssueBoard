@@ -1,84 +1,81 @@
 var alphabet = "abcdefghijklmnopqrstuvwxyz";
 
-function stringToColor(str) {
-    if (!str || str.length == 0)
-	return '';
-
-    while (str.length < 6) {
-		str += str;
-    }
-
-    var normalizer = "a".charCodeAt(0);
-
-    var r = ((str.charCodeAt(0) - normalizer) % 16).toString(16)[0] + ((str.charCodeAt(1) - normalizer) % 16).toString(16)[0];
-    var g = ((str.charCodeAt(2) - normalizer) % 16).toString(16)[0] + ((str.charCodeAt(3) - normalizer) % 16).toString(16)[0];
-    var b = ((str.charCodeAt(4) - normalizer) % 16).toString(16)[0] + ((str.charCodeAt(5) - normalizer) % 16).toString(16)[0];
-
-    var color = r + g + b;
-
-    return "#" + color;
-}
-
 function convertJIRAStatus(jiraStatus) {
     return jiraStatus.toLowerCase().replace(/\s/, "_");
 }
 
-function releaseClass(releaseVersion) {
-	if (!releaseVersion) {
-		return "";
-	}
+var tickets = new TicketCollection();
+var assignees = new AssigneeCollection();
+assignees.comparator = 'name';
+var priorities = new PriorityCollection();
+var releases = new ReleaseCollection();
+var types = new TypeCollection();
 
-	return releaseVersion.replace(new RegExp("\\.|\\s", "g"), "_");
-}
-
-var ticket_array = new observableArray();
-var assignee_array = new observableArray();
-var priority_array = new observableArray();
-var releases_array = new observableArray();
-
-// Manually add these for now
-// TODO: move to config file
-priority_array.push("Blocker", 0);
-priority_array.push("Critical", 1);
-priority_array.push("Major", 2);
-priority_array.push("Minor", 3);
-priority_array.push("Trivial", 4);
-
-function ticketPrioritySort(a, b) {
-	return priority_array.data[a.priority] - priority_array.data[b.priority];
-}
-
-assignee_array.onNewItem = function(key){
-    $('#legend table').append('<tr class="legend_user legend_' + key + '"><td valign="bottom" id="legend_' + key + '">' + key + ' <div class="user_color ' + key + '">&nbsp;</div></td></tr>');
-
-    $('.legend_' + key + ' *').click(function() {
-		for (var id in ticket_array.data) {
-			if ($('#' + id + '_assignees').hasClass(key)) { 
-				$('#' + id).show();
-	    	} else {
-				$('#' + id).hide();
-	    	}
-		}
+assignees.on('add', function( assignee ) {
+    var view = new AssigneeView({
+        model: assignee
     });
-};
 
-releases_array.onNewItem = function(key) {
-	$('#release_version').append('<option value="' + key + '">' + key + '</option>');
-}
+    $('#legend table').append( view.$el );
+    assignee.$el = view.$el;
 
-function assigneeColourize() {
-	assignee_array.each(function(key) {
-		if ($('.' + key))
-	    	$('.' + key).css('background-color', stringToColor(key));
-	});
-}
+    view.on('userChangeEvent', function() {
+        tickets.each( function( ticket ) {
+            $('#' + ticket.get('id')).toggle( ticket.get('assignee').name == assignee.get('name') );
+        });
+    });
+});
+
+assignees.on('remove', function( assignee ) {
+    assignee.$el.remove();
+});
+
+releases.on('add', function( release ) {
+    $('#release_version').append('<option value="' + release.get('name') + '">' + release.get('name') + '</option>');
+});
+
+tickets.on('add', function( ticket ) {
+    var view = new TicketView({
+        model: ticket,
+        assignees: assignees,
+        releases: releases
+    });
+
+    ticket.$el = view.$el;
+
+    $('#' + ticket.get('section') ).append( view.$el );
+    view.$el.draggable();
+});
+
+tickets.on('change', function( ticket ) {
+    if ( ticket.changed.section ) {
+        ticket.$el.remove();
+        ticket.$el.removeAttr('style');
+
+        $('#' + ticket.get('section') ).prepend( ticket.$el );
+
+        ticket.$el.draggable();
+    }
+
+    var assignee = assignees.findWhere( ticket.get('assignee') );
+    $('.' + assignee.get('name') ).css('background-color', assignee.colour() );
+    ticket.update();
+});
+
+tickets.on('remove', function( ticket ) {
+    ticket.$el.remove();
+});
 
 $(document).ready(function(){
+    assignees.add({ name: 'unassigned' });
 
 	$('#release_version').change(function(){
 		if ($(this).val().length > 0) {
 			$('.ticket_block').hide();
-			$('.' + releaseClass($(this).val())).show();
+
+            var release_name = $(this).val();
+            var release = releases.findWhere({ name: release_name });
+            $('.' + release.cssClass()).show();
 		}
 		else {
 			$('.ticket_block').show();
@@ -91,24 +88,12 @@ $(document).ready(function(){
 
     $('#update').click(function() {
 		queryIssues();
-		$('#password').val('');
     });
-    
-	$("#legend table tbody").on("hover", "td",
-		function(event) {
-			if(event.type == 'mouseleave') {
-				$(this).parent().removeClass("highlight");
-			}
-			else {
-				$(this).parent().addClass("highlight");
-			}
-		}
-  	);
 
     $('#toggle_all').click(function(){
-		for (var t in ticket_array.data) {
-		    ticket_toggle(t);
-		}
+        tickets.each(function( ticket ) {
+            ticket_toggle( ticket );
+        });
 
 		if ($(this).val() == "Minimize All") {
 	    	$(this).val("Maximize All");
@@ -122,8 +107,9 @@ $(document).ready(function(){
 		$.get('flush_issues', function(data){
 	    	if (data.json_message == "Issues flushed.") {
 				$('.issue_section').html('');
-				ticket_array.flush();
-				assignee_array.flush();
+				tickets.reset();
+				assignees.reset();
+                releases.reset();
 	    	}
 		});
 
@@ -134,35 +120,13 @@ $(document).ready(function(){
         drop: function( event, ui ) {
 			var ticket_id = ui.draggable.attr('id');
 			var section = $(this).attr('id');
-			var title = $('#' + ticket_id + '_title').html();
-			var assignee = $('#' + ticket_id + '_assignees').html();
-			var priority = $('#' + ticket_id + '_priority').html();
-			var type = $('#' + ticket_id + '_type').html();
-			var release = $('#' + ticket_id + '_release').html();
-			if (release == "Not scheduled for release")
-				release = "";
 
-			ticket_array.data[ticket_id].section = section;
-			ticket_array.data[ticket_id].title = title;
-			ticket_array.data[ticket_id].assignees = new observableArray(assignee.split(','));
-			ticket_array.data[ticket_id].priority = priority;
-			ticket_array.data[ticket_id].type = type;
-			ticket_array.data[ticket_id].release = release;
-			ticket_array.data[ticket_id].update();
-
-			ui.draggable.remove();
-			ui.draggable.removeAttr('style');
-			if ($(this).find('.ticket_block').first().length > 0) {
-				$(this).find('.ticket_block').first().before(ui.draggable);
-			}
-			else {
-				$(this).append(ui.draggable);
-			}
-
-			// Re-init draggable
-			$('.ticket_block').draggable();
+            var ticket = tickets.findWhere({ id: ticket_id });
+            ticket.set('section', section );
 		}
     });
+
+    $.blockUI();
 
     $.get('/curl/get_fix_versions', function(data) {
         if (data.json_data.errors) {
@@ -182,43 +146,49 @@ $(document).ready(function(){
 			alert(data.json_data.errors);
 		}
 		else {
-			var assignees = new Array();
 			for (var i = 0; i < data.json_data.tickets.length; i++) {
 				var ticket_data = data.json_data.tickets[i];
 
-                if (ticket_data.section == "SQL Review") {
-                    ticket_data.section = "Review";
+                if (ticket_data.section == "sql_review") {
+                    ticket_data.section = "review";
                 }
-
-				ticket_array.push(ticket_data.id, new ticket(ticket_data.id, ticket_data.section, ticket_data.title, ticket_data.assignee, ticket_data.priority, ticket_data.type, ticket_data.release));
 
 				if (ticket_data.assignee.indexOf(',') != -1) {
 					var ticketAssignees = ticket_data.assignee.split(',');
 
-					for (var a = 0; a < ticketAssignees.length; a++) 
-						assignees.push(ticketAssignees[a]);
+					for (var a = 0; a < ticketAssignees.length; a++) {
+						assignees.add(new Assignee({ name: ticketAssignees[a] }));
+                    }
 				}
 				else {
-					assignees.push(ticket_data.assignee);
+                    var assignee = new Assignee({ name: ticket_data.assignee });
+					assignees.add( assignee );
+                    ticket_data.assignee = assignee.toJSON();
 				}
 
-				if (ticket_data.release && ticket_data.release != "null" && !releases_array.data[ticket_data.release]) {
-					releases_array.push(ticket_data.release, 1);
+				if ( ticket_data.release && ticket_data.release != "null" ) {
+                    var release = new Release({ name: ticket_data.release })
+                    releases.add( release );
+                    ticket_data.release = release.toJSON();
 				}
-			}
-			
-			assignees.sort();
-			
-			for (var i = 0; i < assignees.length; i++) {
-				assignee_array.push(assignees[i], 1)
-			}
 
-			ticket_array.sort(ticketPrioritySort);
-			ticket_array.each(function(ticket) {
-				$('#' + ticket.section).append(ticket.toObj());
-			}, true);			
-			assigneeColourize();
+                if ( ticket_data.priority && ticket_data.priority != "null" ) {
+                    var priority = new Priority({ name: ticket_data.priority, image: ticket_data.priority.toLowerCase() });
+                    priorities.add( priority );
+                    ticket_data.priority = priority.toJSON();
+                }
+
+                if ( ticket_data.type && ticket_data.type != "null" ) {
+                    var type = new Type({ name: ticket_data.type });
+                    types.add( type );
+                    ticket_data.type = type.toJSON();
+                }
+
+                tickets.add(new Ticket(ticket_data));
+			}
 		}
+
+        $.unblockUI();
     });
 });
 
@@ -226,7 +196,7 @@ function queryIssues() {
     /*
 	Authentication
     */
-    $('#overlay_container').show();
+    $.blockUI();
 
     $.post('/curl/get_issues', {
 			fix_version: $('#fix_version').val(),
@@ -242,129 +212,69 @@ function queryIssues() {
                         name: 'unassigned'
                     };
                 }
-			
-				if (!ticket_array.data[issue.key]) {
-					ticket_array.push(issue.key, new ticket(issue.key, convertJIRAStatus(issue.fields.status.name), issue.fields.summary, issue.fields.assignee.name, issue.fields.priority.name, issue.fields.issuetype.name, issue.fields.customfield_10191));
-					$('#' + convertJIRAStatus(issue.fields.status.name)).append(ticket_array.data[issue.key].toObj());
-					assignee_array.push(issue.fields.assignee.name, 1);
-				}
-				else {
-					$('.' + ticket_array.data[issue.key].assignee).removeClass(ticket_array.data[issue.key].assignee).addClass(issue.fields.assignee.name);
-					
-					ticket_array.data[issue.key].title = issue.fields.summary;
 
-					// if the ticket has been returned to the original owner
-					if (ticket_array.data[issue.key].assignees.size() > 1 && ticket_array.data[issue.key].assignees.data[0] == issue.fields.assignee.name) {
-						// remove the history
-						ticket_array.data[issue.key].assignees = new observableArray();
-						ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
-						$('#' + issue.key + '_assignees').attr('class', ticket_array.data[issue.key].assignees.data[0]);
-						$('#' + issue.key + '_assignees').html(ticket_array.data[issue.key].assignees.data[0]);
-					}
-					else {
-						// This is a new assignee for the ticket
-						if (ticket_array.data[issue.key].assignees.indexOf(issue.fields.assignee.name) == -1) {
-							ticket_array.data[issue.key].assignees.push(issue.fields.assignee.name);
-						}
-					}
+                var ticket = tickets.findWhere({ key: issue.key });
 
-					if (ticket_array.data[issue.key].section == "test" && issue.fields.status.name == "System Test") {
-						ticket_array.data[issue.key].section = convertJIRAStatus(issue.fields.status.name);
-						$('#' + issue.key).remove();
-						$('#system_test').append(ticket_array.data[issue.key].toObj());
-					}
-                    else if (ticket_array.data[issue.key].section == "sql_review" || issue.fields.status.name == "SQL Review") {
-                        ticket_array.data[issue.key].section = "review";
-                        $('#' + issue.key).remove();
-                        $('#review').append(ticket_array.data[issue.key].toObj());
-                    }
+                var assignee = new Assignee( issue.fields.assignee );
+                assignees.add( assignee );
 
-					ticket_array.data[issue.key].priority = issue.fields.priority.name;
-					ticket_array.data[issue.key].type = issue.fields.issuetype.name;
-					ticket_array.data[issue.key].release = issue.fields.customfield_10191;
+                var priority = new Priority({ name: issue.fields.issuetype.name });
+                priorities.add( priority );
 
-					if (ticket_array.data[issue.key].release && !releases_array.data[ticket_array.data[issue.key].release] && ticket_array.data[issue.key].release.length > 0) {
-						releases_array.push(ticket_array.data[issue.key].release, 1);
-					}
-				}
+                var release = new Release({ name: issue.fields.customfield_10191 || "TBD" });
+                releases.add( release );
 
-				ticket_array.data[issue.key].update();
+                var type = new Type({ name: issue.fields.issuetype });
+                types.add( type );
+
+                if ( ticket ) {
+                    ticket.set({
+                        id: issue.key,
+                        title: issue.fields.summary,
+                        assignee: assignee.toJSON(),
+                        priority: priority.toJSON(),
+                        type: type.toJSON(),
+                        release: release.toJSON()
+                    });
+                }
+                else {
+                    ticket = new Ticket();
+
+                    ticket.set({
+                        id: issue.key,
+                        section: convertJIRAStatus(issue.fields.status.name),
+                        title: issue.fields.summary,
+                        assignee: assignee.toJSON(),
+                        priority: priority.toJSON(),
+                        type: type.toJSON(),
+                        release: release.toJSON()
+                    });
+                }
+
+                // If the ticket was in testing, but is now in System Testing do the move automatically
+                if ( ticket.get('section') == "test" && issue.fields.status.name == "System Test" ) {
+                    ticket.set('section', 'system_test');
+                }
+
+                if ( ticket.get('section') == "sql_review" || issue.fields.status.name == "SQL Review" ) {
+                    ticket.set('section', 'review');
+                }
+
 			}
 
-			$('#overlay_container').hide();
-			assigneeColourize();
+			$.unblockUI();
 		},
 		'json'
     );
 }
 
-function ticket_toggle(ticket_id) {
-    $('#' + ticket_id + ' p').toggle();
+function ticket_toggle( ticket ) {
+    $('#' + ticket.get('id') + ' p').toggle();
 
-    if ($('#' + ticket_id + ' p').is(':visible')) {
-        $('#' + ticket_id + '_toggle').val('-');
+    if ($('#' + ticket.get('id') + ' p').is(':visible')) {
+        $('#' + ticket.get('id') + '_toggle').val('-');
     }
     else {
-        $('#' + ticket_id + '_toggle').val('+');
+        $('#' + ticket.get('id') + '_toggle').val('+');
     }
 }
-
-function assignee_edit(ticket_id) {
-	var ticket_obj = ticket_array.data[ticket_id];
-
-	if (ticket_obj) {
-		var h3 = $('#' + ticket_id + '_assignee');
-		h3.replaceWith(ticket_obj.assignee_edit_obj(assignee_array));
-
-		// Focus on the select
-		$('#' + ticket_id + '_assignee_edit_select').focus();
-
-		// If it changes
-		$('#' + ticket_id + '_assignee_edit_select').change(function(){
-			var assignee = $(this).val();
-
-			ticket_array.data[ticket_id].assignees = new observableArray();
-			ticket_array.data[ticket_id].assignees.push(assignee);
-			ticket_array.data[ticket_id].obj = null;
-			$('#' + ticket_id).replaceWith(ticket_array.data[ticket_id].toObj());
-			assigneeColourize();
-
-			ticket_array.data[ticket_id].update();
-		});
-		
-		// No change
-		$('#' + ticket_id + '_assignee_edit_select').blur(function(){
-			$('#' + ticket_id + '_assignee_edit').replaceWith(h3);
-		});
-	}
-	else {
-		alert('Ticket does not exist. Refresh the page.');
-	}
-}
-
-function release_edit(ticket_id) {
-	var ticket_obj = ticket_array.data[ticket_id];
-
-	if (ticket_obj) {
-		var div = $('#' + ticket_id + '_release');
-		div.replaceWith(ticket_obj.release_edit_obj());
-		$('#' + ticket_id + '_release_edit_select').focus();
-
-		$('#' + ticket_id + '_release_edit_select').change(function() {
-			var release = $(this).val();
-			ticket_array.data[ticket_id].release = release;
-			ticket_array.data[ticket_id].obj = null;
-			$('#' + ticket_id).replaceWith(ticket_array.data[ticket_id].toObj());
-			assigneeColourize();
-			ticket_array.data[ticket_id].update();
-		});
-
-		$('#' + ticket_id + '_release_edit_select').blur(function(){
-			$('#' + ticket_id + '_release_edit').replaceWith(div);
-		});
-	}
-	else {
-		alert('Ticket does not exist. Refresh the page');
-	}
-}
-

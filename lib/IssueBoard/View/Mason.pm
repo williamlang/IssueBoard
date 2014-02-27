@@ -7,7 +7,7 @@ use base 'Catalyst::View::Mason';
 
 __PACKAGE__->config(
 	use_match => 0,
-	template_extension => '.html',
+	template_extension => '.mason',
 );
 
 =head1 NAME

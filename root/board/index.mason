@@ -22,7 +22,7 @@
 		<input id="flush" type="button" value="Flush Issues" />
 		<input id="toggle_all" type="button" value="Minimize All" />
 		<p>
-			Release: 
+			Release:
 			<select id="release_version">
 				<option></option>
 			</select>
@@ -42,7 +42,7 @@
 </div>
 
 <table id="issueboard">
-	<thead>	
+	<thead>
 		<tr id="issueboard_header_row">
 			<th>Open</th>
 			<th>In Progress</th>
@@ -70,10 +70,10 @@
     </tr>
 </table>
 
-<div id="overlay_container" style="display:none;">
-    <div id="loading_overlay"></div>
-    <div id="loading">Loading...</div>
-</div>
+<& assignee_template.mason &>
+<& ticket_template.mason &>
+<& assignee_edit_template.mason &>
+<& release_edit_template.mason &>
 
 <script>
 	$(document).ready(function() {

@@ -1,0 +1,27 @@
+<script id="ticket-template" type="x-template">
+    <div class="ticket_header" style="background-color:{{ assignee.colour }}">
+        <h3 class="{{ assignee.name }} h3_top">{{ id }}</h3>
+        <span style="float:right;margin-top:-30px;">
+            <input type="button" value="-" id="{{ id }}_toggle">
+        </span>
+    </div>
+    <p class="ticket_title">{{ title }}</p>
+    <p class="release">
+        <span class="{{ release.class }}">{{ release.name }}</span>
+    </p>
+    <div class="release_edit" style="display:none;">
+        <select style="width:99%;">
+        </select>
+    </div>
+    <p>
+        <span style="float:left;"><img src="https://pythian.jira.com/images/icons/priority_{{ priority.image }}.gif" alt="{{ priority.name }}"></span>
+        <span style="float:left; margin-top: -3px; margin-left: 3px;">{{ type.name }}</span>
+    </p>
+    <h3 class="{{ assignee.name }} h3_bottom assignee" style="background-color:{{ assignee.colour }}">
+        {{ assignee.name }}
+    </h3>
+    <div class="assignee_edit" style="display:none;">
+        <select style="width:99%;">
+        </select>
+    </div>
+</script>

@@ -1,0 +1,5 @@
+<script id="assignee-template" type="x-template">
+    <td valign="bottom" class="legend_user legend_{{ name }}" id="legend_{{ name }}">
+        {{ name }} <div class="user_color" style="background-color: {{ colour }}">&nbsp;</div>
+    </td>
+</script>

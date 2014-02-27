@@ -1,0 +1,7 @@
+<script id="release-edit-template" type="x-template">
+    <select style="width:98%;">
+    {{ #releases }}
+        <option value="{{ name }}">{{ name }}</option>
+    {{ /releases }}
+    </select>
+</script>
