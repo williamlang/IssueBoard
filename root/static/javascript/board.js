@@ -74,8 +74,9 @@ $(document).ready(function(){
 			$('.ticket_block').hide();
 
             var release_name = $(this).val();
-            var release = releases.findWhere({ name: release_name });
-            $('.' + release.cssClass()).show();
+            tickets.each( function( ticket ) {
+                $('#' + ticket.get('id')).toggle( ticket.get('release').name == release_name );
+            });
 		}
 		else {
 			$('.ticket_block').show();
